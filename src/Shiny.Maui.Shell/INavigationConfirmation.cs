@@ -1,6 +1,6 @@
 namespace Shiny;
 
-public interface INavigateConfirm
+public interface INavigationConfirmation
 {
     Task<bool> CanNavigate();
 }

@@ -15,17 +15,18 @@ public class ShinyShellNavigator(
         if (application is not Application app)
             throw new InvalidOperationException($"Invalid MAUI Application - {application.GetType()}");
 
+        // TODO: don't use anonymous events when I release
         app.DescendantAdded += (_, args) =>
         {
             if (args.Element is Shell shell)
             {
                 shell.Navigating += async (_, shellArgs) =>
                 {
-                    if (shell.CurrentPage?.BindingContext is INavigateConfirm confirm)
+                    if (shell.CurrentPage?.BindingContext is INavigationConfirmation confirm)
                     {
                         var deferral = shellArgs.GetDeferral();
                         var canNav = await confirm.CanNavigate();
-                        if (canNav)
+                        if (!canNav)
                             shellArgs.Cancel();
 
                         deferral.Complete();
@@ -89,24 +90,24 @@ public class ShinyShellNavigator(
     public Task GoBack() => MainThread.InvokeOnMainThreadAsync(async () => await Shell.Current.GoToAsync(".."));
 
 
-    public async Task Alert(string title, string message)
+    public async Task Alert(string title, string message, string acceptText)
     {
         var tcs = new TaskCompletionSource();
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
-            await Shell.Current.DisplayAlert(title, message, "OK");
+            await Shell.Current.DisplayAlert(title, message, acceptText);
             tcs.SetResult();
         });
         await tcs.Task;
     }
     
 
-    public async Task<bool> Confirm(string title, string message)
+    public async Task<bool> Confirm(string title, string message, string acceptText, string cancelText)
     {
         var tcs = new TaskCompletionSource<bool>();
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
-            var result = await Shell.Current.DisplayAlert(title, message, "Yes", "No");
+            var result = await Shell.Current.DisplayAlert(title, message, acceptText, cancelText);
             tcs.SetResult(result);
         });
         return await tcs.Task.ConfigureAwait(false);

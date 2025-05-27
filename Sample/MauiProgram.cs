@@ -10,8 +10,9 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .UseShinyNavigation(x => x
+            .UseShinyShell(x => x
                 .Add<MainPage, MainViewModel>(registerRoute: false)
+                .Add<AnotherPage, AnotherViewModel>("another")
             )
             .ConfigureFonts(fonts =>
             {
@@ -20,6 +21,7 @@ public static class MauiProgram
             });
 
 #if DEBUG
+        builder.Logging.SetMinimumLevel(LogLevel.Trace);
         builder.Logging.AddDebug();
 #endif
 
