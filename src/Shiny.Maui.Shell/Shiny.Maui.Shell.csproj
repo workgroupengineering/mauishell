@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="All" />
         <PackageReference Include="Microsoft.Maui.Controls" />
     </ItemGroup>
 </Project>
