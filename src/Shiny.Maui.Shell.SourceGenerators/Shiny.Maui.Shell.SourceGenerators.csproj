@@ -12,7 +12,6 @@
         <IsRoslynComponent>true</IsRoslynComponent>
         -->
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     </PropertyGroup>
 
