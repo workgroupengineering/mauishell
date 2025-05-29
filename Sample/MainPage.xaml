@@ -28,6 +28,10 @@
             <Button Text="Navigate By Route"
                     Command="{Binding NavByUriCommand}"
                     HorizontalOptions="Fill" />
+            
+            <Button Text="Navigate By ViewModel" 
+                    Command="{Binding NavByViewModelCommand}"
+                    HorizontalOptions="Fill" />
         </VerticalStackLayout>
     </ScrollView>
 

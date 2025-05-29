@@ -22,8 +22,9 @@ public sealed class ShinyNavigationBuilder
     }
     
 
-    public Type? GetViewModelTypeForPage(Type pageType)
+    public Type? GetViewModelTypeForPage(Page page)
     {
+        var pageType = page.GetType();
         foreach (var pair in this.typeMap)
         {
             if (pair.Value.PageType == pageType) 
@@ -32,6 +33,18 @@ public sealed class ShinyNavigationBuilder
         return null;
     }
 
+
+    public string? GetRouteForViewModel(Type viewModelType)
+    {
+        foreach (var pair in this.typeMap)
+        {
+            if (pair.Value.ViewModelType == viewModelType)
+                return pair.Key;
+        }
+
+        return null;
+    }
+    
     
     internal void RegisterDependencies(IServiceCollection services)
     {

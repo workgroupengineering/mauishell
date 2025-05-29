@@ -7,6 +7,7 @@ namespace Shiny.Infrastructure;
 public class ShinyShellNavigator(
     ILogger<ShinyShellNavigator> logger,
     IApplication application,
+    IServiceProvider services,
     ShinyNavigationBuilder navBuilder
 ) : INavigator, IMauiInitializeService
 {
@@ -49,7 +50,7 @@ public class ShinyShellNavigator(
             if (page.BindingContext == null)
             {
                 // needed for initial pags - IQueryAttributable would be missed
-                var viewModelType = navBuilder.GetViewModelTypeForPage(page.GetType());
+                var viewModelType = navBuilder.GetViewModelTypeForPage(page);
                 if (viewModelType == null)
                 {
                     logger.LogDebug("No ViewModel found for page");
@@ -86,7 +87,41 @@ public class ShinyShellNavigator(
         await Shell.Current.GoToAsync(uri, true, parameters);
     }
     
-    
+
+    public async Task NavigateTo<TViewModel>(Action<TViewModel>? configure = null, params IEnumerable<(string Key, object Value)> args)
+    {
+        var route = navBuilder.GetRouteForViewModel(typeof(TViewModel));
+        if (route == null)
+            throw new InvalidOperationException($"Could not find a route for viewmodel '{typeof(TViewModel)}'");
+
+        var tcs = new TaskCompletionSource();
+        var handler = new EventHandler<Page>((_, page) =>
+        {
+            if (page.BindingContext is TViewModel vm)
+            {
+                logger.LogDebug("Pre-Configuring ViewModel");
+                configure?.Invoke(vm);
+                tcs.TrySetResult();
+            }
+            else
+                tcs.TrySetException(new InvalidOperationException($"Page BindingContext is not of type '{typeof(TViewModel)}'"));
+        });
+        
+        try
+        {
+            ShinyRouteFactory.PageResolved += handler;
+            
+            var parameters = args.ToDictionary(x => x.Key, x => x.Value);
+            await Shell.Current.GoToAsync(route, parameters);
+            await tcs.Task.ConfigureAwait(false);
+        }
+        finally
+        {
+            ShinyRouteFactory.PageResolved -= handler;
+        }
+    }
+
+
     public Task GoBack() => MainThread.InvokeOnMainThreadAsync(async () => await Shell.Current.GoToAsync(".."));
 
 

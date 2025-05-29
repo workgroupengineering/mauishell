@@ -11,6 +11,8 @@
             <Label Text="Welcome To Another Page" />
 
             <Label Text="{Binding Arg, StringFormat='Received Arg: {0}'}" />
+            <Label Text="You navigated here by viewmodel" 
+                   IsVisible="{Binding IsNavFromViewModel}" />
         </VerticalStackLayout>
     </ContentPage.Content>
 </ContentPage>

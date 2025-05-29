@@ -14,8 +14,9 @@ build it around Shell so I could understand the inner workings of Shell.
 * [ ] Navigation Service
   * [ ] Events…?
   * [ ] To Commands
-  * [x] Goto(string uri, args)
-  * [ ] GotoByViewModel
+  * [x] NavigateTo(string uri, args)
+  * [x] NavigateTo<TViewModel>
+    * [x] With Strongly Typed Init
   * [ ] GoBack(args)
   * [ ] Pop To Root
   * [ ] Set Root
@@ -24,7 +25,8 @@ build it around Shell so I could understand the inner workings of Shell.
 * [ ] Source Generation
   * [ ] UseShinyShellGenerated
 * [ ] ViewModel lifecycle
-  * [ ] Initialize?
+  * [x] Initialize (when navigating by viewmodel)
+  * [x] Strongly Typed Navigation Args (when navigating by viewmodel - Also take a look at [Shiny Mediator](https://shinylib.net/mediator) shell for this)
   * [x] OnAppearing/OnDisappearing
   * [x] Navigation Confirmation
   * [x] Disposable/Destroy

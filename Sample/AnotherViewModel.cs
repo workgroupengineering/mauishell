@@ -1,31 +1,34 @@
+using Microsoft.Extensions.Logging;
 using Shiny;
 
 namespace Sample;
 
+
 public partial class AnotherViewModel(
+    ILogger<AnotherViewModel> logger,
     INavigator navigator
 ) : ObservableObject, IQueryAttributable, IPageLifecycleAware, INavigationConfirmation, IDisposable
 {
     [ObservableProperty] string arg;
-    
+    [ObservableProperty] bool isNavFromViewModel;
     
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        Console.WriteLine("AnotherViewModel ApplyQueryAttributes");
+        logger.LogInformation("AnotherViewModel ApplyQueryAttributes");
         if (query.TryGetValue("Arg", out var value))
             this.Arg = (string)value;
     }
 
-    public void Dispose() => Console.WriteLine("AnotherViewModel Dispose");
+    public void Dispose() => logger.LogInformation("AnotherViewModel Dispose");
 
     public void OnAppearing()
     {
-        Console.WriteLine("AnotherViewModel OnAppearing");
+        logger.LogInformation("AnotherViewModel OnAppearing");
     }
 
     public void OnDisappearing()
     {
-        Console.WriteLine("AnotherViewModel OnDisappearing");
+        logger.LogInformation("AnotherViewModel OnDisappearing");
     }
 
     public Task<bool> CanNavigate() => navigator.Confirm(
