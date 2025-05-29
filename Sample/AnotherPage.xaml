@@ -6,13 +6,21 @@
              x:DataType="sample:AnotherViewModel"
              x:Class="Sample.AnotherPage"
              Title="Another Page">
-    <ContentPage.Content>
-        <VerticalStackLayout>
-            <Label Text="Welcome To Another Page" />
+    <VerticalStackLayout
+        Padding="30,0"
+        Spacing="25">
+        <Label Text="Welcome To Another Page" />
 
-            <Label Text="{Binding Arg, StringFormat='Received Arg: {0}'}" />
-            <Label Text="You navigated here by viewmodel" 
-                   IsVisible="{Binding IsNavFromViewModel}" />
-        </VerticalStackLayout>
-    </ContentPage.Content>
+        <Label Text="{Binding Arg, StringFormat='Received Arg: {0}'}" />
+        <Label Text="You navigated here by viewmodel" 
+               IsVisible="{Binding IsNavFromViewModel}" />
+        
+        <Button Text="GO BACK" 
+                Command="{Binding GoBackCommand}"
+                HorizontalOptions="Fill" />
+        
+        <Entry Text="{Binding BackArg}" 
+               Placeholder="Back Argument"
+               HorizontalOptions="Fill" />
+    </VerticalStackLayout>
 </ContentPage>

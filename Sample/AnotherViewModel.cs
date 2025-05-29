@@ -9,8 +9,11 @@ public partial class AnotherViewModel(
     INavigator navigator
 ) : ObservableObject, IQueryAttributable, IPageLifecycleAware, INavigationConfirmation, IDisposable
 {
+    [ObservableProperty] string backArg;
     [ObservableProperty] string arg;
     [ObservableProperty] bool isNavFromViewModel;
+    
+    [RelayCommand] Task GoBack() => navigator.GoBack(("ToTheBack", this.BackArg));
     
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -20,16 +23,8 @@ public partial class AnotherViewModel(
     }
 
     public void Dispose() => logger.LogInformation("AnotherViewModel Dispose");
-
-    public void OnAppearing()
-    {
-        logger.LogInformation("AnotherViewModel OnAppearing");
-    }
-
-    public void OnDisappearing()
-    {
-        logger.LogInformation("AnotherViewModel OnDisappearing");
-    }
+    public void OnAppearing() => logger.LogInformation("AnotherViewModel OnAppearing");
+    public void OnDisappearing() => logger.LogInformation("AnotherViewModel OnDisappearing");
 
     public Task<bool> CanNavigate() => navigator.Confirm(
         "Confirm", 

@@ -9,7 +9,7 @@ public interface INavigator
         Action<TViewModel>? configure = null, 
         params IEnumerable<(string Key, object Value)> args
     );
-    Task GoBack();
+    Task GoBack(params IEnumerable<(string Key, object Value)> args);
     
     Task Alert(string title, string message, string acceptText);
     Task<bool> Confirm(string title, string message, string acceptText, string cancelText);

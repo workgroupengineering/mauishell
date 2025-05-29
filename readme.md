@@ -9,7 +9,7 @@ build it around Shell so I could understand the inner workings of Shell.
 
 ### Features/Roadmap
 * [x] Registration
-* [ ] ServiceScope per Page
+* [x] ~~ServiceScope per Page~~
 * [ ] Shell XAML Integration(?)
 * [ ] Navigation Service
   * [ ] Events…?
@@ -17,7 +17,7 @@ build it around Shell so I could understand the inner workings of Shell.
   * [x] NavigateTo(string uri, args)
   * [x] NavigateTo<TViewModel>
     * [x] With Strongly Typed Init
-  * [ ] GoBack(args)
+  * [x] GoBack(args)
   * [ ] Pop To Root
   * [ ] Set Root
   * [ ] Modals/Tabs
@@ -26,7 +26,7 @@ build it around Shell so I could understand the inner workings of Shell.
   * [ ] UseShinyShellGenerated
 * [ ] ViewModel lifecycle
   * [x] Initialize (when navigating by viewmodel)
-  * [x] Strongly Typed Navigation Args (when navigating by viewmodel - Also take a look at [Shiny Mediator](https://shinylib.net/mediator) shell for this)
+  * [x] Strongly Typed Navigation Args (when navigating by viewmodel - Take a look at [Shiny Mediator](https://shinylib.net/mediator) shell for this
   * [x] OnAppearing/OnDisappearing
   * [x] Navigation Confirmation
   * [x] Disposable/Destroy

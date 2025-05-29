@@ -112,7 +112,7 @@ public class ShinyShellNavigator(
             ShinyRouteFactory.PageResolved += handler;
             
             var parameters = args.ToDictionary(x => x.Key, x => x.Value);
-            await Shell.Current.GoToAsync(route, parameters);
+            await Shell.Current.GoToAsync(route, true, parameters);
             await tcs.Task.ConfigureAwait(false);
         }
         finally
@@ -122,7 +122,11 @@ public class ShinyShellNavigator(
     }
 
 
-    public Task GoBack() => MainThread.InvokeOnMainThreadAsync(async () => await Shell.Current.GoToAsync(".."));
+    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => MainThread.InvokeOnMainThreadAsync(async () =>
+    {
+        var parameters = args.ToDictionary(x => x.Key, x => x.Value);
+        await Shell.Current.GoToAsync("..", true, parameters);
+    });
 
 
     public async Task Alert(string title, string message, string acceptText)

@@ -23,7 +23,8 @@
                 SemanticProperties.Description="Welcome to dot net Multi platform App U I" />
 
             <Label Text="Navigation Argument" />
-            <Entry Text="{Binding NavArg}" />
+            <Entry Text="{Binding NavArg}" 
+                   HorizontalOptions="Fill" />
             
             <Button Text="Navigate By Route"
                     Command="{Binding NavByUriCommand}"
@@ -32,6 +33,9 @@
             <Button Text="Navigate By ViewModel" 
                     Command="{Binding NavByViewModelCommand}"
                     HorizontalOptions="Fill" />
+
+            <Label Text="{Binding BackArg, StringFormat='Back Arg: {0}'}" 
+                   IsVisible="{Binding ShowBackArg}" />
         </VerticalStackLayout>
     </ScrollView>
 
