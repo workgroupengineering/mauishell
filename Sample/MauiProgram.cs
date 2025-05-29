@@ -13,6 +13,7 @@ public static class MauiProgram
             .UseShinyShell(x => x
                 .Add<MainPage, MainViewModel>(registerRoute: false)
                 .Add<AnotherPage, AnotherViewModel>("another")
+                .Add<ModalPage, ModalViewModel>("modal")
             )
             .ConfigureFonts(fonts =>
             {

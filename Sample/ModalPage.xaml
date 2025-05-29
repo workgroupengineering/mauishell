@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:sample="clr-namespace:Sample"
+             x:DataType="sample:ModalViewModel"
+             x:Class="Sample.ModalPage"
+             Shell.PresentationMode="Modal"
+             Title="Modal">
+    <ContentPage.Content>
+        <Button Text="Close Modal" 
+                Command="{Binding CloseCommand}"/>
+    </ContentPage.Content>
+</ContentPage>

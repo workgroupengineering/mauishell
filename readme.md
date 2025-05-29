@@ -31,8 +31,8 @@ build it around Shell so I could understand the inner workings of Shell.
   * [x] Navigation Confirmation
   * [x] Disposable/Destroy
   * [ ] OnNavigatedTo(args) and direction of navigation(?)
-  * [ ] OnNavigatedFrom() - direction pop, uri from where?
-    <img src="">
+  * [x] OnNavigatedFrom()
+    * [ ] Direction pop, uri from where?
 
 ### Setup
 1. Install Nuget [![nuget](https://img.shields.io/nuget/v/Shiny.Maui.Shell?style=for-the-badge)](https://www.nuget.org/packages/Shiny.Maui.Shell)

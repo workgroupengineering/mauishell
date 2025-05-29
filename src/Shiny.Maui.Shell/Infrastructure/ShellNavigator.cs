@@ -23,7 +23,9 @@ public class ShinyShellNavigator(
             {
                 shell.Navigating += async (_, shellArgs) =>
                 {
-                    if (shell.CurrentPage?.BindingContext is INavigationConfirmation confirm)
+                    var vm = shell.CurrentPage?.BindingContext;
+                    
+                    if (vm is INavigationConfirmation confirm)
                     {
                         var deferral = shellArgs.GetDeferral();
                         var canNav = await confirm.CanNavigate();
@@ -84,6 +86,10 @@ public class ShinyShellNavigator(
     public async Task NavigateTo(string uri, params IEnumerable<(string Key, object Value)> args)
     {
         var parameters = args.ToDictionary(x => x.Key, x => x.Value);
+        if (Shell.Current.CurrentPage?.BindingContext is INavigationAware navAware)
+            navAware.OnNavigatingFrom(parameters);
+
+        // force main thread?
         await Shell.Current.GoToAsync(uri, true, parameters);
     }
     
@@ -109,9 +115,14 @@ public class ShinyShellNavigator(
         
         try
         {
-            ShinyRouteFactory.PageResolved += handler;
-            
             var parameters = args.ToDictionary(x => x.Key, x => x.Value);
+            if (Shell.Current.CurrentPage?.BindingContext is INavigationAware navAware)
+                navAware.OnNavigatingFrom(parameters);
+
+            ShinyRouteFactory.PageResolved += handler;
+
+            
+            // force main thread?
             await Shell.Current.GoToAsync(route, true, parameters);
             await tcs.Task.ConfigureAwait(false);
         }
@@ -124,7 +135,11 @@ public class ShinyShellNavigator(
 
     public Task GoBack(params IEnumerable<(string Key, object Value)> args) => MainThread.InvokeOnMainThreadAsync(async () =>
     {
+        // TODO: force main thread?
         var parameters = args.ToDictionary(x => x.Key, x => x.Value);
+        if (Shell.Current.CurrentPage?.BindingContext is INavigationAware navAware)
+            navAware.OnNavigatingFrom(parameters);
+        
         await Shell.Current.GoToAsync("..", true, parameters);
     });
 

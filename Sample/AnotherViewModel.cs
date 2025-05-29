@@ -7,7 +7,7 @@ namespace Sample;
 public partial class AnotherViewModel(
     ILogger<AnotherViewModel> logger,
     INavigator navigator
-) : ObservableObject, IQueryAttributable, IPageLifecycleAware, INavigationConfirmation, IDisposable
+) : ObservableObject, IQueryAttributable, IPageLifecycleAware, INavigationConfirmation, INavigationAware, IDisposable
 {
     [ObservableProperty] string backArg;
     [ObservableProperty] string arg;
@@ -32,4 +32,13 @@ public partial class AnotherViewModel(
         "Yes", 
         "No"
     );
+    
+    public void OnNavigatingFrom(IDictionary<string, object> parameters)
+    {
+        if (parameters["ToTheBack"] == null)
+        {
+            parameters["ToTheBack"] = "SET BY OnNavigatingFrom"; // mutate/change parameters before actually leaving
+        }
+        logger.LogInformation("OnNavigatingFrom AnotherViewModel");
+    }
 }

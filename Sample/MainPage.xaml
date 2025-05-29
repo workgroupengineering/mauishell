@@ -30,6 +30,10 @@
                     Command="{Binding NavByUriCommand}"
                     HorizontalOptions="Fill" />
             
+            <Button Text="Navigate To Modal" 
+                    Command="{Binding NavToModalCommand}"
+                    HorizontalOptions="Fill" />
+            
             <Button Text="Navigate By ViewModel" 
                     Command="{Binding NavByViewModelCommand}"
                     HorizontalOptions="Fill" />
