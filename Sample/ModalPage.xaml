@@ -7,7 +7,13 @@
              Shell.PresentationMode="Modal"
              Title="Modal">
     <ContentPage.Content>
-        <Button Text="Close Modal" 
-                Command="{Binding CloseCommand}"/>
+        <VerticalStackLayout Padding="30,0"
+                             Spacing="25">
+            <Button Text="Nav Forward in the Modal" 
+                    Command="{Binding NavForwardCommand}" />
+            
+            <Button Text="Close Modal"
+                    Command="{Binding CloseCommand}" />
+        </VerticalStackLayout>
     </ContentPage.Content>
 </ContentPage>
