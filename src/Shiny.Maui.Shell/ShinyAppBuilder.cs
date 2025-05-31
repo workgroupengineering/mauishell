@@ -3,11 +3,19 @@ using System.Diagnostics.CodeAnalysis;
 namespace Shiny;
 
 
-public sealed class ShinyNavigationBuilder
+public sealed class ShinyAppBuilder
 {
     readonly Dictionary<string, (bool RegisterRoute, Type PageType, Type ViewModelType)> typeMap = new();
-    
-    public ShinyNavigationBuilder Add<
+
+    /// <summary>
+    /// Maps the Page <=> ViewModel and optionally registers the route
+    /// </summary>
+    /// <typeparam name="TPage">The page type</typeparam>
+    /// <typeparam name="TViewModel">The viewmodel type</typeparam>
+    /// <param name="route">Optional - uses page name otherwise</param>
+    /// <param name="registerRoute">If you have datatemplate item configured in your Shell XAML, pass false here</param>
+    /// <returns></returns>
+    public ShinyAppBuilder Add<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TPage, 
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TViewModel
     >(string? route = null, bool registerRoute = true)
@@ -18,8 +26,13 @@ public sealed class ShinyNavigationBuilder
         this.typeMap[route] = (registerRoute, typeof(TPage), typeof(TViewModel));
         return this;
     }
-    
 
+
+    /// <summary>
+    /// Gets the ViewModel type for a given page type
+    /// </summary>
+    /// <param name="page"></param>
+    /// <returns></returns>
     public Type? GetViewModelTypeForPage(Page page)
     {
         var pageType = page.GetType();
@@ -32,6 +45,11 @@ public sealed class ShinyNavigationBuilder
     }
 
 
+    /// <summary>
+    /// Gets the route for a given ViewModel type
+    /// </summary>
+    /// <param name="viewModelType"></param>
+    /// <returns></returns>
     public string? GetRouteForViewModel(Type viewModelType)
     {
         foreach (var pair in this.typeMap)

@@ -7,7 +7,7 @@ namespace Shiny.Infrastructure;
 public class ShinyShellNavigator(
     ILogger<ShinyShellNavigator> logger,
     IApplication application,
-    ShinyNavigationBuilder navBuilder
+    ShinyAppBuilder navBuilder
 ) : INavigator, IMauiInitializeService
 {
     public void Initialize(IServiceProvider services)
@@ -84,12 +84,14 @@ public class ShinyShellNavigator(
     
     public async Task NavigateTo(string uri, params IEnumerable<(string Key, object Value)> args)
     {
+        var shell = Shell.Current;
         var parameters = args.ToDictionary(x => x.Key, x => x.Value);
-        if (Shell.Current.CurrentPage?.BindingContext is INavigationAware navAware)
+
+        if (shell.CurrentPage?.BindingContext is INavigationAware navAware)
             navAware.OnNavigatingFrom(parameters);
 
         // force main thread?
-        await Shell.Current.GoToAsync(uri, true, parameters);
+        await shell.GoToAsync(uri, true, parameters);
     }
     
 
@@ -143,7 +145,7 @@ public class ShinyShellNavigator(
     });
 
 
-    public async Task Alert(string title, string message, string acceptText)
+    public async Task Alert(string title, string message, string acceptText = "OK")
     {
         var tcs = new TaskCompletionSource();
         await MainThread.InvokeOnMainThreadAsync(async () =>
@@ -155,7 +157,7 @@ public class ShinyShellNavigator(
     }
     
 
-    public async Task<bool> Confirm(string title, string message, string acceptText, string cancelText)
+    public async Task<bool> Confirm(string? title, string message, string acceptText = "Yes", string cancelText = "No")
     {
         var tcs = new TaskCompletionSource<bool>();
         await MainThread.InvokeOnMainThreadAsync(async () =>
