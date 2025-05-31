@@ -7,7 +7,6 @@ namespace Shiny.Infrastructure;
 public class ShinyShellNavigator(
     ILogger<ShinyShellNavigator> logger,
     IApplication application,
-    IServiceProvider services,
     ShinyNavigationBuilder navBuilder
 ) : INavigator, IMauiInitializeService
 {
