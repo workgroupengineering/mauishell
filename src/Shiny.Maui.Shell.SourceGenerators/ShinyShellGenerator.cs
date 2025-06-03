@@ -14,11 +14,6 @@ public class ShinyShellGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(x => x.AddSource(
-            "Attributes.g.cs",
-            ATTRIBUTES
-        ));
-
         // Find classes with ShellMapAttribute
         var shellMapClasses = context.SyntaxProvider
             .CreateSyntaxProvider(
@@ -71,10 +66,27 @@ public class ShinyShellGenerator : IIncrementalGenerator
     {
         if (attribute.ArgumentList?.Arguments.Count > 0)
         {
-            var firstArg = attribute.ArgumentList.Arguments[0];
-            if (firstArg.Expression is LiteralExpressionSyntax literal)
+            // Look for the route parameter specifically
+            foreach (var arg in attribute.ArgumentList.Arguments)
             {
-                return literal.Token.ValueText;
+                // Check if it's a named argument for "route"
+                if (arg.NameColon?.Name.Identifier.ValueText == "route")
+                {
+                    if (arg.Expression is LiteralExpressionSyntax literal)
+                    {
+                        return literal.Token.ValueText;
+                    }
+                }
+                // If it's the first positional argument and not a named argument for registerRoute
+                else if (arg == attribute.ArgumentList.Arguments[0] && 
+                         arg.NameColon?.Name.Identifier.ValueText != "registerRoute")
+                {
+                    if (arg.Expression is LiteralExpressionSyntax literal &&
+                        literal.Token.IsKind(SyntaxKind.StringLiteralToken))
+                    {
+                        return literal.Token.ValueText;
+                    }
+                }
             }
         }
         return null;
@@ -82,15 +94,53 @@ public class ShinyShellGenerator : IIncrementalGenerator
 
     static bool GetRegisterRouteFromAttribute(AttributeSyntax attribute)
     {
-        if (attribute.ArgumentList?.Arguments.Count > 1)
+        if (attribute.ArgumentList?.Arguments.Count > 0)
         {
-            var secondArg = attribute.ArgumentList.Arguments[1];
-            if (secondArg.Expression is LiteralExpressionSyntax literal)
+            var arguments = attribute.ArgumentList.Arguments;
+            
+            // Look for the registerRoute parameter specifically
+            foreach (var arg in arguments)
             {
-                if (literal.Token.IsKind(SyntaxKind.FalseKeyword))
-                    return false;
-                if (literal.Token.IsKind(SyntaxKind.TrueKeyword))
-                    return true;
+                // Check if it's a named argument for "registerRoute"
+                if (arg.NameColon?.Name.Identifier.ValueText == "registerRoute")
+                {
+                    if (arg.Expression is LiteralExpressionSyntax literal)
+                    {
+                        if (literal.Token.IsKind(SyntaxKind.FalseKeyword))
+                            return false;
+                        if (literal.Token.IsKind(SyntaxKind.TrueKeyword))
+                            return true;
+                    }
+                }
+            }
+            
+            // Check positional arguments
+            for (int i = 0; i < arguments.Count; i++)
+            {
+                var arg = arguments[i];
+                
+                // If it's the second positional argument (index 1) and not a named argument
+                if (i == 1 && arg.NameColon == null)
+                {
+                    if (arg.Expression is LiteralExpressionSyntax literal)
+                    {
+                        if (literal.Token.IsKind(SyntaxKind.FalseKeyword))
+                            return false;
+                        if (literal.Token.IsKind(SyntaxKind.TrueKeyword))
+                            return true;
+                    }
+                }
+                // Handle case where registerRoute is the first argument (when route is omitted)
+                else if (i == 0 && 
+                         arg.NameColon == null &&
+                         arg.Expression is LiteralExpressionSyntax literal &&
+                         (literal.Token.IsKind(SyntaxKind.TrueKeyword) || literal.Token.IsKind(SyntaxKind.FalseKeyword)))
+                {
+                    if (literal.Token.IsKind(SyntaxKind.FalseKeyword))
+                        return false;
+                    if (literal.Token.IsKind(SyntaxKind.TrueKeyword))
+                        return true;
+                }
             }
         }
         // Default value is true according to the attribute definition
@@ -295,30 +345,6 @@ public class ShinyShellGenerator : IIncrementalGenerator
     {
         return typeName.EndsWith("?") || typeName == "string" ? "null" : "default";
     }
-
-    const string ATTRIBUTES =
-        """
-        #nullable enable
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Shiny.Maui.Shell", "1.0.0")]
-        [global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false)]
-        internal sealed class ShellMapAttribute<TPage>(
-            string? route = null,
-            bool registerRoute = true
-        ) : Attribute
-        {
-            public string Route => route ?? typeof(TPage).Name;
-            public bool RegisterRoute => registerRoute;
-        }
-        
-        // optional args go to end
-        // generate INavigator extensions - NavigateToAnotherPage(string? Arg1) 
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Shiny.Maui.Shell", "1.0.0")]
-        [global::System.AttributeUsage(global::System.AttributeTargets.Property, AllowMultiple = false)]
-        internal sealed class ShellPropertyAttribute(bool required) : Attribute
-        {
-            public bool IsRequired => required;
-        }
-        """;
 }
 
 record ShellMapInfo(

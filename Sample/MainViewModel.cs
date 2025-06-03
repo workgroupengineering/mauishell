@@ -3,7 +3,7 @@ using Shiny;
 
 namespace Sample;
 
-[ShellMap<MainPage>]
+[ShellMap<MainPage>(registerRoute: false)]
 public partial class MainViewModel(
     ILogger<MainViewModel> logger,
     INavigator navigator
