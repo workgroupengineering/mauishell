@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -219,6 +220,12 @@ public class ShinyShellGenerator : IIncrementalGenerator
                 sb.Append($", {prop.TypeName} {ToCamelCase(prop.Name)} = {defaultValue}");
             }
             
+            // If no properties, add the params argument
+            if (!cls.Properties.Any())
+            {
+                sb.Append(", params global::System.Collections.Generic.IEnumerable<(string Key, object Value)> args");
+            }
+            
             sb.AppendLine(")");
             sb.AppendLine("    {");
             
@@ -235,7 +242,7 @@ public class ShinyShellGenerator : IIncrementalGenerator
             }
             else
             {
-                sb.AppendLine($"        return navigator.NavigateTo<{cls.ViewModelFullName}>();");
+                sb.AppendLine($"        return navigator.NavigateTo<{cls.ViewModelFullName}>(configure: null, args: args);");
             }
             
             sb.AppendLine("    }");

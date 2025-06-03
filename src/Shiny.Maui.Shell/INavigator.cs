@@ -12,7 +12,7 @@ public interface INavigator
     /// must be unique.</param>
     /// <returns>A task that represents the asynchronous navigation operation.</returns>
     Task NavigateTo(string route, params IEnumerable<(string Key, object Value)> args);
-   
+
 
     /// <summary>
     /// Navigates to a view associated with the specified view model type.
