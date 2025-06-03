@@ -1,11 +1,12 @@
 # Shiny MAUI
 
-Work In Progress
-
 ## Shell
 
-Inspired entirely by Prism - there is nothing here that is an original idea.  I wanted to build this myself and
-build it around Shell so I could understand the inner workings of Shell.
+Make .NET MAUI Shell shinier with viewmodel lifecycle management, navigation, and source generation to remove boilerplate,
+reduce errors, and make your app testable!  We try to take care of all the gaps with .NET MAUI Shell
+
+Inspired by [Prism Library](https://prismlibrary) by Dan Siegel and Brian Lagunas
+
 
 ### Features/Roadmap
 * [x] Registration
