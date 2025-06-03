@@ -45,6 +45,7 @@ public class ShinyShellGenerator : IIncrementalGenerator
                     {
                         var pageType = attributeClass.TypeArguments[0];
                         var route = GetRouteFromAttribute(attribute);
+                        var registerRoute = GetRegisterRouteFromAttribute(attribute);
                         var properties = GetShellProperties(classDeclaration, context.SemanticModel);
                         
                         var viewModelSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
@@ -54,7 +55,7 @@ public class ShinyShellGenerator : IIncrementalGenerator
                             pageType.Name, // Use just the name for constant generation
                             pageType.ToDisplayString(), // Full qualified name for type references
                             route ?? pageType.Name,
-                            route != null, // Track if route was explicitly provided
+                            registerRoute, // Use the registerRoute parameter from attribute
                             properties
                         );
                     }
@@ -76,6 +77,23 @@ public class ShinyShellGenerator : IIncrementalGenerator
             }
         }
         return null;
+    }
+
+    static bool GetRegisterRouteFromAttribute(AttributeSyntax attribute)
+    {
+        if (attribute.ArgumentList?.Arguments.Count > 1)
+        {
+            var secondArg = attribute.ArgumentList.Arguments[1];
+            if (secondArg.Expression is LiteralExpressionSyntax literal)
+            {
+                if (literal.Token.IsKind(SyntaxKind.FalseKeyword))
+                    return false;
+                if (literal.Token.IsKind(SyntaxKind.TrueKeyword))
+                    return true;
+            }
+        }
+        // Default value is true according to the attribute definition
+        return true;
     }
 
     static ImmutableArray<ShellPropertyInfo> GetShellProperties(ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel)
@@ -242,7 +260,7 @@ public class ShinyShellGenerator : IIncrementalGenerator
         foreach (var cls in classes)
         {
             var constantName = cls.PageTypeName.Replace("Page", "");
-            if (cls.RouteExplicitlyProvided)
+            if (cls.RegisterRoute)
             {
                 sb.AppendLine($"        builder.Add<{cls.PageTypeFullName}, {cls.ViewModelFullName}>(Routes.{constantName});");
             }
@@ -277,10 +295,12 @@ public class ShinyShellGenerator : IIncrementalGenerator
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Shiny.Maui.Shell", "1.0.0")]
         [global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false)]
         internal sealed class ShellMapAttribute<TPage>(
-            string? route = null
+            string? route = null,
+            bool registerRoute = true
         ) : Attribute
         {
             public string Route => route ?? typeof(TPage).Name;
+            public bool RegisterRoute => registerRoute;
         }
         
         // optional args go to end
@@ -300,7 +320,7 @@ record ShellMapInfo(
     string PageTypeName,
     string PageTypeFullName,
     string Route,
-    bool RouteExplicitlyProvided,
+    bool RegisterRoute,
     ImmutableArray<ShellPropertyInfo> Properties
 );
 
