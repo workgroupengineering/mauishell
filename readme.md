@@ -9,20 +9,20 @@ build it around Shell so I could understand the inner workings of Shell.
 
 ### Features/Roadmap
 * [x] Registration
-* [x] ~~ServiceScope per Page~~
-* [ ] Shell XAML Integration(?)
+* [ ] ~~ServiceScope per Page~~
+* [ ] ~~Shell XAML Integration(?)~~
 * [ ] Navigation Service
   * [ ] Events…?
   * [ ] To Commands
   * [x] NavigateTo(string uri, args)
   * [x] NavigateTo<TViewModel>
     * [x] With Strongly Typed Init
-      * [ ] Should be async??
   * [x] GoBack(args)
   * [ ] Pop To Root
   * [ ] Set Root
-  * [ ] Modals/Tabs
+  * [x] Modals/Tabs
 * [x] Auto ViewModel Push on to page
+* [x] No special AppShell class to implement
 * [x] Source Generation
   * [x] Static Routes Class
   * [x] Navigator extension methods for strongly typed navigation
@@ -32,7 +32,6 @@ build it around Shell so I could understand the inner workings of Shell.
   * [x] OnAppearing/OnDisappearing
   * [x] Navigation Confirmation
   * [x] Disposable/Destroy
-  * [ ] OnNavigatedTo(args) and direction of navigation(?)
   * [x] OnNavigatedFrom()
     * [ ] Direction pop, uri from where?
 
@@ -68,21 +67,48 @@ public static class MauiProgram
 ```
 3. Now you can inject `Shiny.INavigator` into your VIewModels and navigate away
 
+> [!NOTE]
+> The default MAUI template emits an AppShell.xaml and registers as startup against the Window.  You don't not have to modify
+> this code in any way to work with this library.  You do need to have Shell (obviously)
+
 ### Navigation
-Shiny.INavigator - TODO
-* NavigateTo(string routeName)
-* NavigateTo<TViewModel>(Action<TVIewModel>)
-* GoBack(dictionary)
+Shiny.INavigator
+```csharp
+// navigate by route name with args
+INavigator navigator; // injected into your viewmodel
+
+// navigate to a registered route (in XAML or with our .Add in UseShinyShell)
+await navigator.NavigateTo("MyPageOrRoute", ("MyArg", 99), ("Arg2", "Hello"));
+
+// navigate by viewmodel with strongly typed args
+await navigator.NavigateTo<MyViewModel(viewmodel => viewmodel.MyArg = 99);
+
+// goback or pop model
+await navigator.GoBack(("SendAnotherArg", "I'm back"));
+```
+> [!NOTE]
+> If you're setting arguments on the viewmodel navigation, you should make them observable if they are bound on the Page.
 
 ### ViewModel Lifecycle
-TODO
 
-* IDisposable - to permanently destroy any hooks
-* IPageLifecycleAware
-* INavigationConfirmation
-* Receive arguments on your ViewModel by implementing - IQueryAttributable
+ViewModel lifecycles work basically exactly like [Prism Library](https://prismlibrary.com) - Implement the following interfaces
+to get the behaviour
+
+* System.IDisposable
+  * Fires when the page/viewmodel is being removed entirely.  Destroy any hooks here to prevent leaks
+* Shiny.IPageLifecycleAware
+  * OnAppearing() - when the page becomes visible
+  * OnDisppearing() - fires when the page becomes hidden or popped
+* Shiny.INavigationConfirmation
+  * Task<bool> CanNavigate() - decide if the user is allowed to leave or not
+* Shiny.INavigationAware
+  * void OnNavigatingFrom(IDictionary<string, object> parameters) - allows you to mutate the navigation args before leaving the page
+* Microsoft.Maui.Controls.IQueryAttributable 
+  * void ApplyQueryAttributes(IDictionary<string, object> query) - Receives arguments navigating to or back
 
 ### Source Generation
+
+Our source generators help you achieve a lot of the above with less boilerplate and less code overall
 
 THIS
 ```csharp
