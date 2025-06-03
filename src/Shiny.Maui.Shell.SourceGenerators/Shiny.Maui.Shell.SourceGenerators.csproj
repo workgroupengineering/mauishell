@@ -20,6 +20,7 @@
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     </ItemGroup>
 
+    <!--
     <ItemGroup>
         <None Include="build/Package.targets"
               Pack="True"
@@ -29,4 +30,5 @@
               Pack="True"
               PackagePath="buildTransitive/Shiny.Maui.Shell.SourceGenerators.targets" />
     </ItemGroup>
+    -->
 </Project>
