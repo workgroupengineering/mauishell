@@ -46,7 +46,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\src\Shiny.Maui.Shell.SourceGenerators\Shiny.Maui.Shell.SourceGenerators.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false"/>
+        
         <ProjectReference Include="..\src\Shiny.Maui.Shell\Shiny.Maui.Shell.csproj"/>
     </ItemGroup>
 
+    <Import Project="..\src\Shiny.Maui.Shell.SourceGenerators\build\Package.targets" />
 </Project>

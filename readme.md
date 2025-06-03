@@ -23,8 +23,10 @@ build it around Shell so I could understand the inner workings of Shell.
   * [ ] Set Root
   * [ ] Modals/Tabs
 * [x] Auto ViewModel Push on to page
-* [ ] Source Generation
-  * [ ] UseShinyShellGenerated
+* [x] Source Generation
+  * [x] Static Routes Class
+  * [x] Navigator extension methods for strongly typed navigation
+  * [x] Dependency injection source generated method
 * [ ] ViewModel lifecycle
   * [x] Strongly Typed Navigation Args (when navigating by viewmodel - Take a look at [Shiny Mediator](https://shinylib.net/mediator) shell for this
   * [x] OnAppearing/OnDisappearing
@@ -68,6 +70,9 @@ public static class MauiProgram
 
 ### Navigation
 Shiny.INavigator - TODO
+* NavigateTo(string routeName)
+* NavigateTo<TViewModel>(Action<TVIewModel>)
+* GoBack(dictionary)
 
 ### ViewModel Lifecycle
 TODO
@@ -77,5 +82,45 @@ TODO
 * INavigationConfirmation
 * Receive arguments on your ViewModel by implementing - IQueryAttributable
 
-## Goals
-* Must be AOT compliant
+### Source Generation
+
+THIS
+```csharp
+// INPUT
+[ShellMap<MyPage>("MyRoute")]
+public class MyViewModel 
+{
+    [ShellProperty]
+    public string Arg { get; set; }
+}
+```
+
+GENERATES ALL OF THIS FOR YOU TO PLUGIN SEAMLESSLY WITH YOUR CODE
+* Strong Typed Routes with arguments
+* Easy Dependency Injection Registration of Routes
+
+```csharp
+public static class NavigationBuilderExtensions
+{
+    public static global::Shiny.ShinyAppBuilder AddGeneratedMaps(this global::Shiny.ShinyAppBuilder builder)
+    {
+        builder.Add<Sample.MyPage, Sample.MyViewModel>(Routes.My);
+        return builder;
+    }
+}
+
+
+public static class NavigationExtensions
+{
+    public static global::System.Threading.Tasks.Task NavigateToModal(this global::Shiny.INavigator navigator, string arg1)
+    {
+        return navigator.NavigateTo<Sample.ModalViewModel>(x => { x.Arg = arg; });
+    }
+}
+
+public static class Routes
+{
+    public const string My = "MyPage";
+}
+
+```
