@@ -32,6 +32,15 @@ public interface INavigator
     );
 
 
+    // /// <summary>
+    // /// Returns to the root page regardless of how far up the stack you are
+    // /// </summary>
+    // /// <param name="args">A collection of key-value pairs representing arguments to pass to the view during navigation. Each key must be
+    // /// unique.</param>
+    // /// <returns></returns>
+    // Task PopToRoot(params IEnumerable<(string Key, object Value)> args);
+    
+    
     /// <summary>
     /// Navigates back to the previous view or state in the application, optionally passing parameters to the target.
     /// </summary>
@@ -55,6 +64,7 @@ public interface INavigator
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation of displaying the alert.</returns>
     Task Alert(string? title, string message, string acceptText = "OK");
 
+    
     /// <summary>
     /// Displays a confirmation dialog with the specified title, message, and button text,  and returns the user's
     /// response.

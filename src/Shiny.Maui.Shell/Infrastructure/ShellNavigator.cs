@@ -7,95 +7,52 @@ namespace Shiny.Infrastructure;
 public class ShinyShellNavigator(
     ILogger<ShinyShellNavigator> logger,
     IApplication application,
+    IServiceProvider services,
+    IDispatcher dispatcher,
     ShinyAppBuilder navBuilder
-) : INavigator, IMauiInitializeService
+) : INavigator, IMauiInitializeService, IDisposable
 {
-    public void Initialize(IServiceProvider services)
+    public void Initialize(IServiceProvider _)
     {
         if (application is not Application app)
             throw new InvalidOperationException($"Invalid MAUI Application - {application.GetType()}");
 
-        // TODO: don't use anonymous events when I release
-        app.DescendantAdded += (_, args) =>
-        {
-            if (args.Element is Shell shell)
-            {
-                shell.Navigating += async (_, shellArgs) =>
-                {
-                    var vm = shell.CurrentPage?.BindingContext;
-                    
-                    if (vm is INavigationConfirmation confirm)
-                    {
-                        var deferral = shellArgs.GetDeferral();
-                        var canNav = await confirm.CanNavigate();
-                        if (!canNav)
-                            shellArgs.Cancel();
-
-                        deferral.Complete();
-                    }
-                };
-            }
-        };
-        
-        app.DescendantRemoved += (_, args) =>
-        {
-            if (args.Element is Page { BindingContext: IDisposable disposable })
-            {
-                logger.LogDebug("[Dispose] ViewModel '{type}'", disposable.GetType());
-                disposable.Dispose();
-            }
-        };
-        
-        app.PageAppearing += (_, page) =>
-        {
-            if (page.BindingContext == null)
-            {
-                // needed for initial pags - IQueryAttributable would be missed
-                var viewModelType = navBuilder.GetViewModelTypeForPage(page);
-                if (viewModelType == null)
-                {
-                    logger.LogDebug("No ViewModel found for page");
-                }
-                else
-                {
-                    var vm = services.GetService(viewModelType);
-                    page.BindingContext = vm;
-                    logger.LogDebug("[Binding] ViewModel {type} set on page", viewModelType);
-                }
-            }
-            
-            if (page.BindingContext is IPageLifecycleAware lc)
-            {
-                logger.LogDebug("[OnAppearing] ViewModel '{type}' ", lc.GetType());
-                lc.OnAppearing();
-            }
-        };
-
-        app.PageDisappearing += (_, page) =>
-        {
-            if (page.BindingContext is IPageLifecycleAware lc)
-            {
-                logger.LogDebug("[OnAppearing] ViewModel '{type}' ", lc.GetType());
-                lc.OnDisappearing();
-            }
-        };
+        app.DescendantAdded += this.AppOnDescendantAdded;
+        app.DescendantRemoved += this.AppOnDescendantRemoved;
+        app.PageAppearing += this.AppOnPageAppearing;
+        app.PageDisappearing += this.AppOnPageDisappearing;
     }
     
     
-    public async Task NavigateTo(string uri, params IEnumerable<(string Key, object Value)> args)
+    public void Dispose()
     {
-        var shell = Shell.Current;
-        var parameters = args.ToDictionary(x => x.Key, x => x.Value);
-
-        if (shell.CurrentPage?.BindingContext is INavigationAware navAware)
-            navAware.OnNavigatingFrom(parameters);
-
-        // force main thread?
-        await shell.GoToAsync(uri, true, parameters);
+        if (application is Application app)
+        {
+            app.DescendantAdded -= this.AppOnDescendantAdded;
+            app.DescendantRemoved -= this.AppOnDescendantRemoved;
+            app.PageAppearing -= this.AppOnPageAppearing;
+            app.PageDisappearing -= this.AppOnPageDisappearing;
+        }
     }
-    
 
-    public async Task NavigateTo<TViewModel>(Action<TViewModel>? configure = null, params IEnumerable<(string Key, object Value)> args)
+    
+    public Task NavigateTo(string uri, params IEnumerable<(string Key, object Value)> args) =>
+        dispatcher.DispatchAsync(() =>
+        {
+            var shell = Shell.Current;
+            var parameters = args.ToDictionary(x => x.Key, x => x.Value);
+
+            if (shell.CurrentPage?.BindingContext is INavigationAware navAware)
+                navAware.OnNavigatingFrom(parameters);
+
+            return shell.GoToAsync(uri, true, parameters);
+        });
+
+
+    public async Task NavigateTo<TViewModel>(
+        Action<TViewModel>? configure = null,
+        params IEnumerable<(string Key, object Value)> args
+    )
     {
         var route = navBuilder.GetRouteForViewModel(typeof(TViewModel));
         if (route == null)
@@ -111,9 +68,10 @@ public class ShinyShellNavigator(
                 tcs.TrySetResult();
             }
             else
-                tcs.TrySetException(new InvalidOperationException($"Page BindingContext is not of type '{typeof(TViewModel)}'"));
+                tcs.TrySetException(
+                    new InvalidOperationException($"Page BindingContext is not of type '{typeof(TViewModel)}'"));
         });
-        
+
         try
         {
             var parameters = args.ToDictionary(x => x.Key, x => x.Value);
@@ -121,10 +79,7 @@ public class ShinyShellNavigator(
                 navAware.OnNavigatingFrom(parameters);
 
             ShinyRouteFactory.PageResolved += handler;
-
-            
-            // force main thread?
-            await Shell.Current.GoToAsync(route, true, parameters);
+            await MainThread.InvokeOnMainThreadAsync(() => Shell.Current.GoToAsync(route, true, parameters));
             await tcs.Task.ConfigureAwait(false);
         }
         finally
@@ -133,19 +88,27 @@ public class ShinyShellNavigator(
         }
     }
 
+    
+    // public Task PopToRoot(params IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
+    // {
+    //     var parameters = args.ToDictionary(x => x.Key, x => x.Value);
+    //     
+    //     return Shell.Current.GoToAsync("..", true, parameters);
+    // });
 
-    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => MainThread.InvokeOnMainThreadAsync(async () =>
+    
+    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
     {
-        // TODO: force main thread?
+        var shell = Shell.Current;
         var parameters = args.ToDictionary(x => x.Key, x => x.Value);
-        if (Shell.Current.CurrentPage?.BindingContext is INavigationAware navAware)
+        if (shell.CurrentPage?.BindingContext is INavigationAware navAware)
             navAware.OnNavigatingFrom(parameters);
         
-        await Shell.Current.GoToAsync("..", true, parameters);
+        return shell.GoToAsync("..", true, parameters);
     });
 
 
-    public async Task Alert(string title, string message, string acceptText = "OK")
+    public async Task Alert(string? title, string message, string acceptText = "OK")
     {
         var tcs = new TaskCompletionSource();
         await MainThread.InvokeOnMainThreadAsync(async () =>
@@ -166,5 +129,73 @@ public class ShinyShellNavigator(
             tcs.SetResult(result);
         });
         return await tcs.Task.ConfigureAwait(false);
+    }
+    
+    
+    void AppOnDescendantAdded(object? sender, ElementEventArgs args)
+    {
+        if (args.Element is Shell shell)
+        {
+            shell.Navigating += async (_, shellArgs) =>
+            {
+                var vm = shell.CurrentPage?.BindingContext;
+
+                if (vm is INavigationConfirmation confirm)
+                {
+                    var deferral = shellArgs.GetDeferral();
+                    var canNav = await confirm.CanNavigate();
+                    if (!canNav)
+                        shellArgs.Cancel();
+
+                    deferral.Complete();
+                }
+            };
+        }
+    }
+    
+    
+    void AppOnDescendantRemoved(object? sender, ElementEventArgs args)
+    {
+        if (args.Element is Page { BindingContext: IDisposable disposable })
+        {
+            logger.LogDebug("[Dispose] ViewModel '{type}'", disposable.GetType());
+            disposable.Dispose();
+        }
+    }
+
+    
+    void AppOnPageAppearing(object? sender, Page page)
+    {
+        if (page.BindingContext == null)
+        {
+            // needed for initial pags - IQueryAttributable would be missed
+            var viewModelType = navBuilder.GetViewModelTypeForPage(page);
+            if (viewModelType == null)
+            {
+                logger.LogDebug("No ViewModel found for page");
+            }
+            else
+            {
+                var vm = services.GetService(viewModelType);
+                page.BindingContext = vm;
+                logger.LogDebug("[Binding] ViewModel {type} set on page", viewModelType);
+            }
+        }
+
+        if (page.BindingContext is IPageLifecycleAware lc)
+        {
+            logger.LogDebug("[OnAppearing] ViewModel '{type}' ", lc.GetType());
+            lc.OnAppearing();
+        }
+    }
+    
+    
+    void AppOnPageDisappearing(object? sender, Page page)
+    {
+        if (page.BindingContext is IPageLifecycleAware lc)
+        {
+            logger.LogDebug("[OnAppearing] ViewModel '{type}' ", lc.GetType());
+            lc.OnDisappearing();
+        }
     }
 }

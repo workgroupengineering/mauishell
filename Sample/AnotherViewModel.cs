@@ -14,6 +14,8 @@ public partial class AnotherViewModel(
     [ObservableProperty] bool isNavFromViewModel;
     
     [RelayCommand] Task GoBack() => navigator.GoBack(("ToTheBack", this.BackArg));
+
+    [RelayCommand] Task PopToRoot() => Task.CompletedTask; //=> navigator.PopToRoot(("ToTheBack", "POPPED TO ROOT"));
     
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {

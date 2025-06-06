@@ -7,14 +7,10 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
-        var builder = MauiApp.CreateBuilder();
-        builder
+        var builder = MauiApp
+            .CreateBuilder()
             .UseMauiApp<App>()
-            .UseShinyShell(x => x
-                .Add<MainPage, MainViewModel>(registerRoute: false)
-                .Add<AnotherPage, AnotherViewModel>("another")
-                .Add<ModalPage, ModalViewModel>("modal")
-            )
+            .UseShinyShell(x => x.AddGeneratedMaps())
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

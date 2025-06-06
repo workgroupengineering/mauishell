@@ -9,32 +9,25 @@ Inspired by [Prism Library](https://prismlibrary) by Dan Siegel and Brian Laguna
 
 
 ### Features/Roadmap
-* [x] Registration
-* [ ] ~~ServiceScope per Page~~
-* [ ] ~~Shell XAML Integration(?)~~
-* [ ] Navigation Service
-  * [ ] Events…?
-  * [ ] To Commands
-  * [x] NavigateTo(string uri, args)
-  * [x] NavigateTo<TViewModel>
-    * [x] With Strongly Typed Init
-  * [x] GoBack(args)
-  * [ ] Pop To Root
-  * [ ] Set Root
-  * [x] Modals/Tabs
-* [x] Auto ViewModel Push on to page
-* [x] No special AppShell class to implement
-* [x] Source Generation
-  * [x] Static Routes Class
-  * [x] Navigator extension methods for strongly typed navigation
-  * [x] Dependency injection source generated method
-* [ ] ViewModel lifecycle
-  * [x] Strongly Typed Navigation Args (when navigating by viewmodel - Take a look at [Shiny Mediator](https://shinylib.net/mediator) shell for this
-  * [x] OnAppearing/OnDisappearing
-  * [x] Navigation Confirmation
-  * [x] Disposable/Destroy
-  * [x] OnNavigatedFrom()
-    * [ ] Direction pop, uri from where?
+* Easy Registration Map for Page <-> ViewModel
+* Auto ViewModel Attach to Page BindingContext
+* No special AppShell class to implement
+* Navigation Service
+  * NavigateTo(string uri, args)
+  * NavigateTo`<TViewModel>`
+    * With Strongly Typed Init
+  * GoBack(args)
+  * Modals/Tabs
+* Source Generation
+  * Static Routes Class
+  * Navigator extension methods for strongly typed navigation
+  * Dependency injection source generated method
+* ViewModel lifecycle
+  * Strongly Typed Navigation Args (when navigating by viewmodel - Take a look at [Shiny Mediator](https://shinylib.net/mediator) shell for this
+  * OnAppearing/OnDisappearing
+  * Navigation Confirmation
+  * Disposable/Destroy
+  * OnNavigatedFrom()
 
 ### Setup
 1. Install Nuget [![nuget](https://img.shields.io/nuget/v/Shiny.Maui.Shell?style=for-the-badge)](https://www.nuget.org/packages/Shiny.Maui.Shell)
@@ -101,11 +94,11 @@ to get the behaviour
   * OnAppearing() - when the page becomes visible
   * OnDisppearing() - fires when the page becomes hidden or popped
 * Shiny.INavigationConfirmation
-  * Task<bool> CanNavigate() - decide if the user is allowed to leave or not
+  * `Task<bool>` CanNavigate() - decide if the user is allowed to leave or not
 * Shiny.INavigationAware
-  * void OnNavigatingFrom(IDictionary<string, object> parameters) - allows you to mutate the navigation args before leaving the page
+  * void OnNavigatingFrom(`IDictionary<string, object>` parameters) - allows you to mutate the navigation args before leaving the page
 * Microsoft.Maui.Controls.IQueryAttributable 
-  * void ApplyQueryAttributes(IDictionary<string, object> query) - Receives arguments navigating to or back
+  * void ApplyQueryAttributes(`IDictionary<string, object>` query) - Receives arguments navigating to or back
 
 ### Source Generation
 
@@ -150,4 +143,33 @@ public static class Routes
     public const string My = "MyPage";
 }
 
+```
+and lastly, put it to use
+```
+// MauiProgram.cs
+public static MauiApp CreateMauiApp()
+{
+    var builder = MauiApp
+        .CreateBuilder()
+        .UseMauiApp<App>()
+        .UseShinyShell(x => x.AddGeneratedMaps()) // All that add code - gone
+        .ConfigureFonts(fonts =>
+        {
+            fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+            fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+        });
+        
+    return builder.Build();
+}
+
+
+// Some ViewModel that navigates
+public class SomeViewModel(INavigator navigator) 
+{
+    async Task Command() 
+    {
+        // no more guess work for what parameters to pass and how
+        await navigator.NavigateToModal("pass the arg");
+    }
+}
 ```
