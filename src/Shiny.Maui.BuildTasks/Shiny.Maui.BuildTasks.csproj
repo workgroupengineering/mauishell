@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <IsPackable>true</IsPackable>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        
+        <!-- Package information -->
+        <PackageId>Shiny.Maui.BuildTasks</PackageId>
+        <Description>MSBuild task for automatically generating platform-specific permission files based on AppPermission MSBuild items</Description>
+        <PackageTags>maui;permissions;android;ios;msbuild-task</PackageTags>
+        <RootNamespace>Shiny.Maui.PermissionGenerator</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Build.Framework" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="build\*.targets" Pack="true" PackagePath="build\" />
+        <None Include="build\*.props" Pack="true" PackagePath="build\" />
+    </ItemGroup>
+
+</Project>

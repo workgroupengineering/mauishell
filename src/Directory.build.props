@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <DisableExtraReferences>False</DisableExtraReferences>
         <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
-        <Description>Shiny MAUI - Make .NET MAUI shell a pleasant experience</Description>
+        
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/shinyorg/maui</PackageProjectUrl>
         <PackageIcon>icon.png</PackageIcon>

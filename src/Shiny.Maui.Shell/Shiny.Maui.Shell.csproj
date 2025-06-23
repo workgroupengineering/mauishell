@@ -5,6 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>Shiny</RootNamespace>
+        <Description>Shiny MAUI - Make .NET MAUI shell a pleasant experience</Description>
     </PropertyGroup>
 
     <ItemGroup>

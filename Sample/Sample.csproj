@@ -18,7 +18,7 @@
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
         <ApplicationVersion>1</ApplicationVersion>
         <WindowsPackageType>None</WindowsPackageType>
-        <MauiVersion>9.0.70</MauiVersion>
+        <MauiVersion>9.0.80</MauiVersion>
 
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
@@ -53,5 +53,15 @@
         <ProjectReference Include="..\src\Shiny.Maui.Shell\Shiny.Maui.Shell.csproj"/>
     </ItemGroup>
 
+    <!--
+    <ItemGroup>
+        <AppPermission Include="Gps" Reason="This application uses GPS to provide location-based services and navigation features" Visible="False" />
+        <AppPermission Include="Camera" Reason="This application needs camera access to capture photos and scan QR codes" />
+        <AppPermission Include="Notifications" Reason="This application sends notifications to keep you updated on important events" />
+    </ItemGroup>
+        <Import Project="..\src\Shiny.Maui.PermissionGenerator\build\Shiny.Maui.PermissionGenerator.props" />
+    <Import Project="..\src\Shiny.Maui.PermissionGenerator\build\Shiny.Maui.PermissionGenerator.targets" />
+    -->
     <Import Project="..\src\Shiny.Maui.Shell.SourceGenerators\build\Package.targets" />
+
 </Project>

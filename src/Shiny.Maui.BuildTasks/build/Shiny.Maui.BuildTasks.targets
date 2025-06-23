@@ -1,0 +1,37 @@
+<Project>
+
+    <ItemGroup>
+        <AvailableItemName Include="AppPermission" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <GeneratedPermissionsDir>$(IntermediateOutputPath)GeneratedPermissions/</GeneratedPermissionsDir>
+        <AndroidManifestGeneratedPath>$(GeneratedPermissionsDir)AndroidManifest.xml</AndroidManifestGeneratedPath>
+        <IOSInfoPlistGeneratedPath>$(GeneratedPermissionsDir)Info.plist</IOSInfoPlistGeneratedPath>
+    </PropertyGroup>
+
+    <Target Name="GenerateAppPermissions" 
+            BeforeTargets="PrepareForBuild"
+            Condition="'@(AppPermission)' != ''">
+        
+        <Message Text="Generating permissions for platform-specific files..." Importance="normal" />
+        
+        <GeneratePermissionsTask 
+            AppPermissions="@(AppPermission)"
+            AndroidManifestPath="$(AndroidManifestGeneratedPath)"
+            IOSInfoPlistPath="$(IOSInfoPlistGeneratedPath)" />
+            
+        <!-- Include generated files in appropriate item groups -->
+        <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android' OR '$(TargetFramework)' == '' OR '$(TargetFramework)' == 'net8.0-android'">
+            <AndroidResource Include="$(AndroidManifestGeneratedPath)" Condition="Exists('$(AndroidManifestGeneratedPath)')" />
+        </ItemGroup>
+        
+        <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios' OR '$(TargetFramework)' == '' OR '$(TargetFramework)' == 'net8.0-ios'">
+            <BundleResource Include="$(IOSInfoPlistGeneratedPath)" Condition="Exists('$(IOSInfoPlistGeneratedPath)')" />
+        </ItemGroup>
+        
+        <Message Text="Generated Android manifest: $(AndroidManifestGeneratedPath)" Importance="normal" Condition="Exists('$(AndroidManifestGeneratedPath)')" />
+        <Message Text="Generated iOS Info.plist: $(IOSInfoPlistGeneratedPath)" Importance="normal" Condition="Exists('$(IOSInfoPlistGeneratedPath)')" />
+    </Target>
+
+</Project>

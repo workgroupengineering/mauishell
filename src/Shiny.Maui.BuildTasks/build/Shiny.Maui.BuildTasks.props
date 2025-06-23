@@ -1,0 +1,14 @@
+<Project>
+
+    <UsingTask
+            TaskName="Shiny.Maui.BuildTasks.GeneratePermissionsTask"
+            AssemblyFile="$(MSBuildThisFileDirectory)..\bin\$(Configuration)\netstandard2.0\Shiny.Maui.BuildTasks.dll"
+            Condition="Exists('$(MSBuildThisFileDirectory)..\bin\$(Configuration)\netstandard2.0\Shiny.Maui.BuildTasks.dll')"/>
+
+    <!-- Fallback for when using as a package -->
+    <UsingTask
+            TaskName="Shiny.Maui.BuildTasks.GeneratePermissionsTask"
+            AssemblyFile="$(MSBuildThisFileDirectory)..\lib\netstandard2.0\Shiny.Maui.BuildTasks.dll"
+            Condition="!Exists('$(MSBuildThisFileDirectory)..\bin\$(Configuration)\netstandard2.0\Shiny.Maui.BuildTasks.dll') AND Exists('$(MSBuildThisFileDirectory)..\lib\netstandard2.0\Shiny.Maui.BuildTasks.dll')"/>
+
+</Project>
