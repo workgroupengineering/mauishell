@@ -6,6 +6,7 @@ public class AutoHaptics : IAutoHaptics, IMauiInitializeService
     public bool PageNavigationEnabled { get; set; }
     public bool ButtonClickEnabled { get; set; }
 
+    // TODO: keyboard typing (this is generally provided by apple though)
 
     public void Initialize(IServiceProvider services)
     {
@@ -16,7 +17,13 @@ public class AutoHaptics : IAutoHaptics, IMauiInitializeService
         app.DescendantAdded += this.AppOnDescendantAdded;
         app.DescendantRemoved += this.AppOnDescendantRemoved;
     }
-    
+
+
+    public void Hook<TElement>(Action<TElement, Action> hook, Action<TElement> unhook) where TElement : Element
+    {
+        throw new NotImplementedException();
+    }
+
 
     void AppOnDescendantAdded(object? sender, ElementEventArgs e)
     {

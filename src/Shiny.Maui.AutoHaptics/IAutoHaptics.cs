@@ -4,6 +4,6 @@ public interface IAutoHaptics
 {
     bool Enabled { get; set; } // all
     
-    bool PageNavigationEnabled { get; set; }
-    bool ButtonClickEnabled { get; set; }
+    void Hook<TElement>(Action<TElement, Action> hook, Action<TElement> unhook)
+        where TElement : Element;
 }
