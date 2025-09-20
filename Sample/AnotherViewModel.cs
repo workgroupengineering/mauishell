@@ -14,8 +14,8 @@ public partial class AnotherViewModel(
     [ObservableProperty] bool isNavFromViewModel;
     
     [RelayCommand] Task GoBack() => navigator.GoBack(("ToTheBack", this.BackArg));
-
-    [RelayCommand] Task PopToRoot() => Task.CompletedTask; //=> navigator.PopToRoot(("ToTheBack", "POPPED TO ROOT"));
+    [RelayCommand] Task PushAnother() => navigator.NavigateTo("another", ("Arg", "Pushing Another"));
+    [RelayCommand] Task PopToRoot() => navigator.PopToRoot(("ToTheBack", "POPPED TO ROOT"));
     
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -37,7 +37,7 @@ public partial class AnotherViewModel(
     
     public void OnNavigatingFrom(IDictionary<string, object> parameters)
     {
-        if (parameters["ToTheBack"] == null)
+        if (!parameters.ContainsKey("ToTheBack"))
         {
             parameters["ToTheBack"] = "SET BY OnNavigatingFrom"; // mutate/change parameters before actually leaving
         }

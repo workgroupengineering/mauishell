@@ -32,13 +32,13 @@ public interface INavigator
     );
 
 
-    // /// <summary>
-    // /// Returns to the root page regardless of how far up the stack you are
-    // /// </summary>
-    // /// <param name="args">A collection of key-value pairs representing arguments to pass to the view during navigation. Each key must be
-    // /// unique.</param>
-    // /// <returns></returns>
-    // Task PopToRoot(params IEnumerable<(string Key, object Value)> args);
+    /// <summary>
+    /// Returns to the root page regardless of how far up the stack you are
+    /// </summary>
+    /// <param name="args">A collection of key-value pairs representing parameters to pass to the target view or state.  Each key must be a
+    /// unique identifier, and the value represents the associated data.</param>
+    /// <returns></returns>
+    Task PopToRoot(params IEnumerable<(string Key, object Value)> args);
     
     
     /// <summary>

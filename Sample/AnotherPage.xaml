@@ -15,10 +15,12 @@
         <Label Text="You navigated here by viewmodel" 
                IsVisible="{Binding IsNavFromViewModel}" />
         
-        <!--
+        <Button Text="Push On Another"
+                Command="{Binding PushAnotherCommand}" />
+        
         <Button Text="Pop to Root" 
                 Command="{Binding PopToRootCommand}"/>
-        -->
+
         <Button Text="GO BACK" 
                 Command="{Binding GoBackCommand}"
                 HorizontalOptions="Fill" />
