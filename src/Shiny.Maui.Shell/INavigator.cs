@@ -52,7 +52,20 @@ public interface INavigator
     /// <returns>A task that represents the asynchronous operation of navigating back.</returns>
     Task GoBack(params IEnumerable<(string Key, object Value)> args);
     
+    
+    /// <summary>
+    /// Navigates back to the previous view or state in the application, optionally passing parameters to the target.
+    /// </summary>
+    /// <remarks>The behavior of the navigation may depend on the application's navigation stack or state
+    /// management. Ensure that the keys and values provided in <paramref name="args"/> are compatible with the target
+    /// view or state.</remarks>
+    /// <param name="backCount">Allows you to go back 1 or more pages in the navigation stack. Defaults to 1.</param>
+    /// <param name="args">A collection of key-value pairs representing parameters to pass to the target view or state.  Each key must be a
+    /// unique identifier, and the value represents the associated data.</param>
+    /// <returns>A task that represents the asynchronous operation of navigating back.</returns>
+    Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args);
 
+    
     /// <summary>
     /// Displays an alert dialog with a title, message, and an accept button.
     /// </summary>

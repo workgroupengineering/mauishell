@@ -91,28 +91,41 @@ public class ShinyShellNavigator(
         }
     }
 
+    
     public Task PopToRoot(params IEnumerable<(string Key, object Value)> args) 
     {
-        var uri = "..";
-        
         // we already have 1 page covered and we don't want to pop the last page
-        var count = Shell.Current.Navigation.NavigationStack.Count - 2;
-        for (var i = 0; i < count; i++)
-            uri += "/..";
-        
-        var parameters = args.ToDictionary(x => x.Key, x => x.Value);
-        return dispatcher.DispatchAsync(() => Shell.Current.GoToAsync(uri, true, parameters));
+        var count = Shell.Current.Navigation.NavigationStack.Count - 1;
+        if (count < 1)
+            count = 1;
+
+        return this.GoBack(count, args);
     }
 
+
+    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => this.GoBack(1, args);
+
     
-    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
+    public Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
     {
+        if (backCount < 1)
+            throw new ArgumentException("Back count must be 1 or more");
+        
+        var uri = String.Empty;
+        for (var i = 0; i < backCount; i++)
+        {
+            if (i > 0)
+                uri += "/";
+            
+            uri += "..";
+        }
+
         var shell = Shell.Current;
         var parameters = args.ToDictionary(x => x.Key, x => x.Value);
         if (shell.CurrentPage?.BindingContext is INavigationAware navAware)
             navAware.OnNavigatingFrom(parameters);
         
-        return shell.GoToAsync("..", true, parameters);
+        return shell.GoToAsync(uri, true, parameters);
     });
 
 
