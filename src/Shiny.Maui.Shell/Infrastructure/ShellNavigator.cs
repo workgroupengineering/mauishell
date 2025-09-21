@@ -52,8 +52,14 @@ public class ShinyShellNavigator(
         });
 
 
+    public Task NavigateTo<TViewModel>(
+        Action<TViewModel>? configure = null,
+        params IEnumerable<(string Key, object Value)> args
+    ) => this.NavigateTo(configure, args);
+
     public async Task NavigateTo<TViewModel>(
         Action<TViewModel>? configure = null,
+        bool resetToRoot = false,
         params IEnumerable<(string Key, object Value)> args
     )
     {
@@ -61,6 +67,9 @@ public class ShinyShellNavigator(
         if (route == null)
             throw new InvalidOperationException($"Could not find a route for viewmodel '{typeof(TViewModel)}'");
 
+        if (resetToRoot)
+            route = $"//{route}";
+        
         var tcs = new TaskCompletionSource();
         var handler = new EventHandler<Page>((_, page) =>
         {

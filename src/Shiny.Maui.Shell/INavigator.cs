@@ -30,6 +30,26 @@ public interface INavigator
         Action<TViewModel>? configure = null, 
         params IEnumerable<(string Key, object Value)> args
     );
+    
+    
+    /// <summary>
+    /// Navigates to a view associated with the specified view model type.
+    /// </summary>
+    /// <remarks>This method allows for flexible navigation by enabling both view model configuration and the
+    /// passing of additional arguments. Ensure that the specified view model type is properly registered and that any
+    /// required arguments are provided.</remarks>
+    /// <typeparam name="TViewModel">The type of the view model to navigate to. The view model must be registered in the navigation system.</typeparam>
+    /// <param name="configure">An optional action to configure the view model before navigation. This can be used to set up properties or
+    /// perform initialization.</param>
+    /// <param name="resetToRoot">This will reset the root page if true.  Defaults to false</param>
+    /// <param name="args">A collection of key-value pairs representing arguments to pass to the view during navigation. Each key must be
+    /// unique.</param>
+    /// <returns>A task that represents the asynchronous navigation operation.</returns>
+    Task NavigateTo<TViewModel>(
+        Action<TViewModel>? configure = null, 
+        bool resetToRoot = false,
+        params IEnumerable<(string Key, object Value)> args
+    );
 
 
     /// <summary>

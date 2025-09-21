@@ -15,6 +15,9 @@
         <Label Text="You navigated here by viewmodel" 
                IsVisible="{Binding IsNavFromViewModel}" />
         
+        <Button Text="Reset Root"
+                Command="{Binding ResetToRootCommand}" />
+        
         <Button Text="Push On Another"
                 Command="{Binding PushAnotherCommand}" />
         
