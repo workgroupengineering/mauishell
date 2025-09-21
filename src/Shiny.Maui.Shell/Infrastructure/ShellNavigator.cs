@@ -55,9 +55,16 @@ public class ShinyShellNavigator(
     public Task NavigateTo<TViewModel>(
         Action<TViewModel>? configure = null,
         params IEnumerable<(string Key, object Value)> args
-    ) => this.NavigateTo(configure, args);
+    ) => this.NavigateTo(configure, false, args);
 
-    public async Task NavigateTo<TViewModel>(
+
+    public Task SetRoot<TViewModel>(
+        Action<TViewModel>? configure = null,
+        params IEnumerable<(string Key, object Value)> args
+    ) => this.NavigateTo(configure, true, args);
+
+    
+    async Task NavigateTo<TViewModel>(
         Action<TViewModel>? configure = null,
         bool resetToRoot = false,
         params IEnumerable<(string Key, object Value)> args
