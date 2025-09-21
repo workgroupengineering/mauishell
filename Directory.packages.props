@@ -1,0 +1,25 @@
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <MauiVersion>9.0.110</MauiVersion>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115"/>
+        <PackageVersion Include="Microsoft.Maui.Controls" Version="$(MauiVersion)"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0"/>
+
+        <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
+        <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+        <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.5.1"/>
+        <PackageVersion Include="Shouldly" Version="4.3.0"/>
+        <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0"/>
+        <PackageVersion Include="Verify.Xunit" Version="30.1.0"/>
+        <PackageVersion Include="xunit" Version="2.9.3"/>
+        <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2"/>
+    </ItemGroup>
+</Project>

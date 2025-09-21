@@ -3,7 +3,10 @@ using Microsoft.Extensions.Logging;
 namespace Shiny.Infrastructure;
 
 
+// Absolute routes don't work with pages that are registered with the Routing.RegisterRoute method.
+// TODO: //PageName and ../../PageName or ../Page1/Page2
 // https://learn.microsoft.com/en-us/dotnet/maui/fundamentals/shell/navigation?view=net-maui-9.0
+// TODO: replace route, backCount = 2, relative
 public class ShinyShellNavigator(
     ILogger<ShinyShellNavigator> logger,
     IApplication application,
@@ -49,8 +52,14 @@ public class ShinyShellNavigator(
         });
 
 
+    public Task NavigateTo<TViewModel>(
+        Action<TViewModel>? configure = null,
+        params IEnumerable<(string Key, object Value)> args
+    ) => this.NavigateTo(configure, args);
+
     public async Task NavigateTo<TViewModel>(
         Action<TViewModel>? configure = null,
+        bool resetToRoot = false,
         params IEnumerable<(string Key, object Value)> args
     )
     {
@@ -58,6 +67,9 @@ public class ShinyShellNavigator(
         if (route == null)
             throw new InvalidOperationException($"Could not find a route for viewmodel '{typeof(TViewModel)}'");
 
+        if (resetToRoot)
+            route = $"//{route}";
+        
         var tcs = new TaskCompletionSource();
         var handler = new EventHandler<Page>((_, page) =>
         {
@@ -79,7 +91,7 @@ public class ShinyShellNavigator(
                 navAware.OnNavigatingFrom(parameters);
 
             ShinyRouteFactory.PageResolved += handler;
-            await MainThread.InvokeOnMainThreadAsync(() => Shell.Current.GoToAsync(route, true, parameters));
+            await dispatcher.DispatchAsync(() => Shell.Current.GoToAsync(route, true, parameters));
             await tcs.Task.ConfigureAwait(false);
         }
         finally
@@ -89,29 +101,47 @@ public class ShinyShellNavigator(
     }
 
     
-    // public Task PopToRoot(params IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
-    // {
-    //     var parameters = args.ToDictionary(x => x.Key, x => x.Value);
-    //     
-    //     return Shell.Current.GoToAsync("..", true, parameters);
-    // });
+    public Task PopToRoot(params IEnumerable<(string Key, object Value)> args) 
+    {
+        // we already have 1 page covered and we don't want to pop the last page
+        var count = Shell.Current.Navigation.NavigationStack.Count - 1;
+        if (count < 1)
+            count = 1;
+
+        return this.GoBack(count, args);
+    }
+
+
+    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => this.GoBack(1, args);
 
     
-    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
+    public Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
     {
+        if (backCount < 1)
+            throw new ArgumentException("Back count must be 1 or more");
+        
+        var uri = String.Empty;
+        for (var i = 0; i < backCount; i++)
+        {
+            if (i > 0)
+                uri += "/";
+            
+            uri += "..";
+        }
+
         var shell = Shell.Current;
         var parameters = args.ToDictionary(x => x.Key, x => x.Value);
         if (shell.CurrentPage?.BindingContext is INavigationAware navAware)
             navAware.OnNavigatingFrom(parameters);
         
-        return shell.GoToAsync("..", true, parameters);
+        return shell.GoToAsync(uri, true, parameters);
     });
 
 
     public async Task Alert(string? title, string message, string acceptText = "OK")
     {
         var tcs = new TaskCompletionSource();
-        await MainThread.InvokeOnMainThreadAsync(async () =>
+        await dispatcher.DispatchAsync(async () =>
         {
             await Shell.Current.DisplayAlert(title, message, acceptText);
             tcs.SetResult();
@@ -123,7 +153,7 @@ public class ShinyShellNavigator(
     public async Task<bool> Confirm(string? title, string message, string acceptText = "Yes", string cancelText = "No")
     {
         var tcs = new TaskCompletionSource<bool>();
-        await MainThread.InvokeOnMainThreadAsync(async () =>
+        await dispatcher.DispatchAsync(async () =>
         {
             var result = await Shell.Current.DisplayAlert(title, message, acceptText, cancelText);
             tcs.SetResult(result);
