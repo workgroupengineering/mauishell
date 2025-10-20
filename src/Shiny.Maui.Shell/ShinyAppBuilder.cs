@@ -7,6 +7,18 @@ public sealed class ShinyAppBuilder
 {
     readonly Dictionary<string, (bool RegisterRoute, Type PageType, Type ViewModelType)> typeMap = new();
 
+    
+    /// <summary>
+    /// This adds all of the registered Shell routes found by the source generator across all libraries within your app
+    /// </summary>
+    /// <returns></returns>
+    public ShinyAppBuilder AddRegistry()
+    {
+        ShinyMauiShellRegistry.ExecuteCallbacks(this);
+        return this;
+    }
+    
+    
     /// <summary>
     /// Maps the Page <=> ViewModel and optionally registers the route
     /// </summary>

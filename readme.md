@@ -120,6 +120,18 @@ GENERATES ALL OF THIS FOR YOU TO PLUGIN SEAMLESSLY WITH YOUR CODE
 * Easy Dependency Injection Registration of Routes
 
 ```csharp
+internal static class __ShinyMauiNavigationRegistry
+{
+    [global::System.Runtime.CompilerServices.ModuleInitializerAttribute]
+    public static void Initialize()
+    {
+        global::Shiny.Infrastructure.ShinyMauiShellRegistry.RegisterCallback(builder =>
+        {
+            builder.Add<Sample.MyPage, Sample.MyViewModel>(Routes.My);
+        });
+    }
+}
+
 public static class NavigationBuilderExtensions
 {
     public static global::Shiny.ShinyAppBuilder AddGeneratedMaps(this global::Shiny.ShinyAppBuilder builder)

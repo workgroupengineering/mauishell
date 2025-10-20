@@ -285,7 +285,7 @@ public class ShinyShellGenerator : IIncrementalGenerator
                 sb.Append("{ ");
                 
                 var assignments = cls.Properties.Select(p => $"x.{p.Name} = {ToCamelCase(p.Name)}");
-                sb.Append(string.Join("; ", assignments));
+                sb.Append(string.Join(", ", assignments));
                 sb.Append(";");
                 
                 sb.AppendLine(" });");
@@ -309,29 +309,32 @@ public class ShinyShellGenerator : IIncrementalGenerator
         var sb = new StringBuilder();
         sb.AppendLine("#nullable enable");
         sb.AppendLine();
-        sb.AppendLine("public static class NavigationBuilderExtensions");
+        sb.AppendLine("internal static class __ShinyMauiNavigationRegistry");
         sb.AppendLine("{");
-        sb.AppendLine("    public static global::Shiny.ShinyAppBuilder AddGeneratedMaps(this global::Shiny.ShinyAppBuilder builder)");
+        sb.AppendLine("    [global::System.Runtime.CompilerServices.ModuleInitializerAttribute]");
+        sb.AppendLine("    public static void Initialize()");
         sb.AppendLine("    {");
+        sb.AppendLine("        global::Shiny.Infrastructure.ShinyMauiShellRegistry.RegisterCallback(builder =>");
+        sb.AppendLine("        {");
         
         foreach (var cls in classes)
         {
             var constantName = cls.PageTypeName.Replace("Page", "");
             if (cls.RegisterRoute)
             {
-                sb.AppendLine($"        builder.Add<{cls.PageTypeFullName}, {cls.ViewModelFullName}>(Routes.{constantName});");
+                sb.AppendLine($"            builder.Add<global::{cls.PageTypeFullName}, global::{cls.ViewModelFullName}>(Routes.{constantName});");
             }
             else
             {
-                sb.AppendLine($"        builder.Add<{cls.PageTypeFullName}, {cls.ViewModelFullName}>(Routes.{constantName}, registerRoute: false);");
+                sb.AppendLine($"            builder.Add<global::{cls.PageTypeFullName}, global::{cls.ViewModelFullName}>(Routes.{constantName}, registerRoute: false);");
             }
         }
         
-        sb.AppendLine("        return builder;");
+        sb.AppendLine("        });");
         sb.AppendLine("    }");
         sb.AppendLine("}");
         
-        context.AddSource("NavigationBuilderExtensions.g.cs", sb.ToString());
+        context.AddSource("NavigationRegistryEntries.g.cs", sb.ToString());
     }
 
     static string ToCamelCase(string text)
