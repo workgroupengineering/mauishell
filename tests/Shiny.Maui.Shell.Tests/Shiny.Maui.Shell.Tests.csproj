@@ -25,8 +25,4 @@
         <Using Include="Xunit"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\..\src\Shiny.Maui.Shell.SourceGenerators\Shiny.Maui.Shell.SourceGenerators.csproj" />
-    </ItemGroup>
-
 </Project>
