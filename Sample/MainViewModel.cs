@@ -7,7 +7,7 @@ namespace Sample;
 public partial class MainViewModel(
     ILogger<MainViewModel> logger,
     INavigator navigator
-) : ObservableObject, IQueryAttributable, INavigationAware
+) : ObservableObject, IQueryAttributable, IPageLifecycleAware
 {
     [ObservableProperty] string navArg;
     
@@ -36,5 +36,17 @@ public partial class MainViewModel(
     public void OnNavigatingFrom(IDictionary<string, object> parameters)
     {
         logger.LogInformation("OnNavigatingFrom MainViewModel");
+    }
+
+    
+    public void OnAppearing()
+    {
+        Console.WriteLine("MainViewModel Appearing");
+    }
+
+    
+    public void OnDisappearing()
+    {
+        Console.WriteLine("MainViewModel Disappearing");
     }
 }

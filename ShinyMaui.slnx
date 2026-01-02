@@ -1,20 +1,19 @@
 ﻿<Solution>
-  <Folder Name="/Solution/">
-    <File Path="readme.md" />
-    <File Path="src/Directory.build.props" />
-    <File Path="src/Directory.build.targets" />
-    <File Path="src/Directory.packages.props" />
-    <File Path="LICENSE" />
-    <File Path="version.json" />
-    <File Path=".github\workflows\build.yml" />
-    <File Path=".github\PULL_REQUEST_TEMPLATE.md" />
-    <File Path=".github\ISSUE_TEMPLATE\bug_report.yml" />
-    <File Path=".github\ISSUE_TEMPLATE\feature_request.yml" />
-    <File Path="Build.slnf" />
-    <File Path="Directory.packages.props" />
-  </Folder>
-  <Project Path="Sample\Sample.csproj" Type="C#" />
-  <Project Path="src\Shiny.Maui.Shell.SourceGenerators\Shiny.Maui.Shell.SourceGenerators.csproj" Type="C#" />
-  <Project Path="src\Shiny.Maui.Shell\Shiny.Maui.Shell.csproj" Type="C#" />
-  <Project Path="tests\Shiny.Maui.Shell.Tests\Shiny.Maui.Shell.Tests.csproj" Type="C#" />
+    <Folder Name="/Solution/">
+        <File Path="readme.md"/>
+        <File Path="src/Directory.build.props"/>
+        <File Path="src/Directory.build.targets"/>
+        <File Path="LICENSE"/>
+        <File Path="version.json"/>
+        <File Path=".github\workflows\build.yml"/>
+        <File Path=".github\PULL_REQUEST_TEMPLATE.md"/>
+        <File Path=".github\ISSUE_TEMPLATE\bug_report.yml"/>
+        <File Path=".github\ISSUE_TEMPLATE\feature_request.yml"/>
+        <File Path="Build.slnf"/>
+        <File Path="Directory.packages.props"/>
+    </Folder>
+    <Project Path="Sample\Sample.csproj"/>
+    <Project Path="src\Shiny.Maui.Shell.SourceGenerators\Shiny.Maui.Shell.SourceGenerators.csproj"/>
+    <Project Path="src\Shiny.Maui.Shell\Shiny.Maui.Shell.csproj"/>
+    <Project Path="tests\Shiny.Maui.Shell.Tests\Shiny.Maui.Shell.Tests.csproj"/>
 </Solution>
