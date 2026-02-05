@@ -1,0 +1,14 @@
+{
+  "name": "shiny-plugins",
+  "owner": {
+    "name": "Shiny",
+    "email": "hello@shinylib.net"
+  },
+  "plugins": [
+    {
+      "name": "shiny-maui-shell",
+      "source": "./",
+      "description": "Claude Code plugin for Shiny MAUI Shell - enhanced .NET MAUI Shell navigation with ViewModel lifecycle management, source generation, and strong-typed navigation"
+    }
+  ]
+}

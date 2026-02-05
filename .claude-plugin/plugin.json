@@ -1,0 +1,26 @@
+{
+  "name": "shiny-maui-shell",
+  "version": "1.0.0",
+  "description": "Claude Code plugin for Shiny MAUI Shell - enhanced .NET MAUI Shell navigation with ViewModel lifecycle management, source generation, and strong-typed navigation",
+  "author": {
+    "name": "Shiny",
+    "email": "hello@shinylib.net",
+    "url": "https://shinylib.net"
+  },
+  "homepage": "https://shinylib.net/maui",
+  "repository": "https://github.com/shinyorg/maui",
+  "license": "MIT",
+  "keywords": [
+    "dotnet",
+    "maui",
+    "shell",
+    "navigation",
+    "mvvm",
+    "viewmodel",
+    "source-generators",
+    "xaml",
+    "mobile",
+    "cross-platform"
+  ],
+  "skills": "./skills/"
+}
