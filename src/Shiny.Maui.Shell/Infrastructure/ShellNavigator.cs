@@ -24,6 +24,11 @@ public class ShinyShellNavigator(
         app.DescendantRemoved += this.AppOnDescendantRemoved;
         app.PageAppearing += this.AppOnPageAppearing;
         app.PageDisappearing += this.AppOnPageDisappearing;
+
+        // The initial page may have already appeared before event handlers were registered
+        var currentPage = Shell.Current?.CurrentPage;
+        if (currentPage != null)
+            this.AppOnPageAppearing(this, currentPage);
     }
     
     
