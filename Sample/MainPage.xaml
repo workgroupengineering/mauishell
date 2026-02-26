@@ -16,6 +16,14 @@
                 HeightRequest="185"
                 Aspect="AspectFit" />
 
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                <Label Text="Shell Type:" VerticalOptions="Center" />
+                <Picker
+                    ItemsSource="{Binding ShellTypes}"
+                    SelectedItem="{Binding SelectedShellType}"
+                    WidthRequest="150" />
+            </HorizontalStackLayout>
+
             <Label
                 Text="Welcome to Shiny MAUI Shell"
                 Style="{StaticResource SubHeadline}"

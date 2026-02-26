@@ -10,11 +10,30 @@ public partial class MainViewModel(
 ) : ObservableObject, IQueryAttributable, IPageLifecycleAware
 {
     [ObservableProperty] string navArg;
-    
+
     [NotifyPropertyChangedFor(nameof(ShowBackArg))]
-    [ObservableProperty] 
+    [ObservableProperty]
     string? backArg;
     public bool ShowBackArg => !String.IsNullOrWhiteSpace(BackArg);
+
+    public string[] ShellTypes { get; } = Enum.GetNames<ShellType>();
+
+    string selectedShellType = (Preferences.Default.ContainsKey("ShellType")
+        ? Preferences.Default.Get("ShellType", nameof(ShellType.Standard))
+        : nameof(ShellType.Standard));
+
+    public string SelectedShellType
+    {
+        get => selectedShellType;
+        set
+        {
+            if (SetProperty(ref selectedShellType, value) && value != null)
+            {
+                var shellType = Enum.Parse<ShellType>(value);
+                App.SetShell(shellType);
+            }
+        }
+    }
     
     [RelayCommand] Task NavByUri() => navigator.NavigateTo("another", ("Arg", this.NavArg));
     [RelayCommand] Task NavToModal(string uri) => navigator.NavigateTo("modal");
