@@ -15,6 +15,12 @@ public class ShinyShellNavigator(
     ShinyAppBuilder navBuilder
 ) : INavigator, IMauiInitializeService, IDisposable
 {
+    public event EventHandler<NavigationEventArgs>? Navigating;
+    public event EventHandler<NavigatedEventArgs>? Navigated;
+
+    record PendingNavigation(string ToUri, NavigationType NavigationType, IReadOnlyDictionary<string, object> Parameters);
+    PendingNavigation? pendingNavigation;
+
     public void Initialize(IServiceProvider _)
     {
         if (application is not Application app)
@@ -44,6 +50,51 @@ public class ShinyShellNavigator(
     }
 
     
+    void RaiseNavigating(Shell shell, string toUri, NavigationType navigationType, IDictionary<string, object> parameters)
+    {
+        var readOnlyParams = new Dictionary<string, object>(parameters);
+        this.pendingNavigation = new PendingNavigation(toUri, navigationType, readOnlyParams);
+
+        try
+        {
+            this.Navigating?.Invoke(this, new NavigationEventArgs(
+                shell.CurrentState?.Location?.ToString(),
+                shell.CurrentPage?.BindingContext,
+                toUri,
+                navigationType,
+                readOnlyParams
+            ));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error in Navigating event handler");
+        }
+    }
+
+
+    void RaiseNavigated(object? toViewModel)
+    {
+        var pending = this.pendingNavigation;
+        this.pendingNavigation = null;
+        if (pending == null)
+            return;
+
+        try
+        {
+            this.Navigated?.Invoke(this, new NavigatedEventArgs(
+                pending.ToUri,
+                toViewModel,
+                pending.NavigationType,
+                pending.Parameters
+            ));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error in Navigated event handler");
+        }
+    }
+
+
     public Task NavigateTo(string uri, params IEnumerable<(string Key, object Value)> args) =>
         dispatcher.DispatchAsync(() =>
         {
@@ -53,6 +104,7 @@ public class ShinyShellNavigator(
             if (shell.CurrentPage?.BindingContext is INavigationAware navAware)
                 navAware.OnNavigatingFrom(parameters);
 
+            this.RaiseNavigating(shell, uri, NavigationType.Push, parameters);
             return shell.GoToAsync(uri, true, parameters);
         });
 
@@ -102,6 +154,9 @@ public class ShinyShellNavigator(
             if (Shell.Current.CurrentPage?.BindingContext is INavigationAware navAware)
                 navAware.OnNavigatingFrom(parameters);
 
+            var navType = resetToRoot ? NavigationType.SetRoot : NavigationType.Push;
+            this.RaiseNavigating(Shell.Current, route, navType, parameters);
+
             ShinyRouteFactory.PageResolved += handler;
             await dispatcher.DispatchAsync(() => Shell.Current.GoToAsync(route, true, parameters));
             await tcs.Task.ConfigureAwait(false);
@@ -113,31 +168,34 @@ public class ShinyShellNavigator(
     }
 
     
-    public Task PopToRoot(params IEnumerable<(string Key, object Value)> args) 
+    public Task PopToRoot(params IEnumerable<(string Key, object Value)> args)
     {
         // we already have 1 page covered and we don't want to pop the last page
         var count = Shell.Current.Navigation.NavigationStack.Count - 1;
         if (count < 1)
             count = 1;
 
-        return this.GoBack(count, args);
+        return this.DoGoBack(count, NavigationType.PopToRoot, args);
     }
 
 
-    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => this.GoBack(1, args);
+    public Task GoBack(params IEnumerable<(string Key, object Value)> args) => this.DoGoBack(1, NavigationType.GoBack, args);
 
-    
-    public Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
+
+    public Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args) => this.DoGoBack(backCount, NavigationType.GoBack, args);
+
+
+    Task DoGoBack(int backCount, NavigationType navType, IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
     {
         if (backCount < 1)
             throw new ArgumentException("Back count must be 1 or more");
-        
+
         var uri = String.Empty;
         for (var i = 0; i < backCount; i++)
         {
             if (i > 0)
                 uri += "/";
-            
+
             uri += "..";
         }
 
@@ -145,7 +203,8 @@ public class ShinyShellNavigator(
         var parameters = args.ToDictionary(x => x.Key, x => x.Value);
         if (shell.CurrentPage?.BindingContext is INavigationAware navAware)
             navAware.OnNavigatingFrom(parameters);
-        
+
+        this.RaiseNavigating(shell, uri, navType, parameters);
         return shell.GoToAsync(uri, true, parameters);
     });
 
@@ -229,9 +288,11 @@ public class ShinyShellNavigator(
             logger.LogDebug("[OnAppearing] ViewModel '{type}' ", lc.GetType());
             lc.OnAppearing();
         }
+
+        this.RaiseNavigated(page.BindingContext);
     }
-    
-    
+
+
     void AppOnPageDisappearing(object? sender, Page page)
     {
         if (page.BindingContext is IPageLifecycleAware lc)
