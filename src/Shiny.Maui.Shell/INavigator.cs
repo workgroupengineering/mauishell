@@ -2,6 +2,9 @@ namespace Shiny;
 
 public interface INavigator
 {
+    event EventHandler<NavigationEventArgs>? Navigating;
+    event EventHandler<NavigatedEventArgs>? Navigated;
+
     /// <summary>
     /// Navigates to the specified route and passes the provided arguments to the target page or view model.
     /// </summary>

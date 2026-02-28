@@ -13,16 +13,7 @@
             Route="MainPage" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Another">
-        <ShellContent
-            ContentTemplate="{DataTemplate local:AnotherPage}"
-            Route="AnotherPage" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="Modal">
-        <ShellContent
-            ContentTemplate="{DataTemplate local:ModalPage}"
-            Route="ModalPage" />
-    </FlyoutItem>
+    <MenuItem Text="Switch to Standard" Clicked="OnSwitchToStandard" />
+    <MenuItem Text="Switch to Tabbed" Clicked="OnSwitchToTabbed" />
 
 </Shell>
