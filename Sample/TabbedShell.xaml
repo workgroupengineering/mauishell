@@ -11,16 +11,6 @@
             Title="Home"
             ContentTemplate="{DataTemplate local:MainPage}"
             Route="MainPage" />
-
-        <ShellContent
-            Title="Another"
-            ContentTemplate="{DataTemplate local:AnotherPage}"
-            Route="AnotherPage" />
-
-        <ShellContent
-            Title="Modal"
-            ContentTemplate="{DataTemplate local:ModalPage}"
-            Route="ModalPage" />
     </TabBar>
 
 </Shell>
