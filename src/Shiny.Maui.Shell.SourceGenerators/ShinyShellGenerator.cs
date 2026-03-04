@@ -12,6 +12,14 @@ namespace Shiny.Maui.Shell.SourceGenerators;
 [Generator(LanguageNames.CSharp)]
 public class ShinyShellGenerator : IIncrementalGenerator
 {
+    static readonly DiagnosticDescriptor InvalidRouteIdentifier = new(
+        "SHINY001",
+        "Invalid route name",
+        "The route '{0}' does not produce a valid C# identifier '{1}'. Route must contain at least one letter and cannot start with a digit after conversion.",
+        "Shiny.Shell",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Find classes with ShellMapAttribute
@@ -22,7 +30,21 @@ public class ShinyShellGenerator : IIncrementalGenerator
             .Where(static m => m is not null)
             .Collect();
 
-        context.RegisterSourceOutput(shellMapClasses, (spc, classes) => GenerateCode(spc, classes));
+        var options = context.AnalyzerConfigOptionsProvider
+            .Select(static (provider, _) =>
+            {
+                provider.GlobalOptions.TryGetValue("build_property.ShinyMauiShell_GenerateRouteConstants", out var routeValue);
+                provider.GlobalOptions.TryGetValue("build_property.ShinyMauiShell_GenerateNavExtensions", out var navValue);
+                // empty or missing is considered true; only explicit "false" disables
+                return (
+                    GenerateRouteConstants: !string.Equals(routeValue, "false", StringComparison.OrdinalIgnoreCase),
+                    GenerateNavExtensions: !string.Equals(navValue, "false", StringComparison.OrdinalIgnoreCase)
+                );
+            });
+
+        var combined = shellMapClasses.Combine(options);
+
+        context.RegisterSourceOutput(combined, (spc, data) => GenerateCode(spc, data.Left, data.Right));
     }
 
     static ShellMapInfo? GetShellMapClass(GeneratorSyntaxContext context)
@@ -45,14 +67,17 @@ public class ShinyShellGenerator : IIncrementalGenerator
                         var properties = GetShellProperties(classDeclaration, context.SemanticModel);
                         
                         var viewModelSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
+                        var generatedName = route ?? pageType.Name.Replace("Page", "");
                         return new ShellMapInfo(
                             classDeclaration.Identifier.ValueText,
-                            viewModelSymbol?.ToDisplayString() ?? classDeclaration.Identifier.ValueText, // Fully qualified viewmodel name
-                            pageType.Name, // Use just the name for constant generation
-                            pageType.ToDisplayString(), // Full qualified name for type references
+                            viewModelSymbol?.ToDisplayString() ?? classDeclaration.Identifier.ValueText,
+                            pageType.Name,
+                            pageType.ToDisplayString(),
                             route ?? pageType.Name,
-                            registerRoute, // Use the registerRoute parameter from attribute
-                            properties
+                            generatedName,
+                            registerRoute,
+                            properties,
+                            attribute.GetLocation()
                         );
                     }
                 }
@@ -206,21 +231,43 @@ public class ShinyShellGenerator : IIncrementalGenerator
         return false;
     }
 
-    static void GenerateCode(SourceProductionContext context, ImmutableArray<ShellMapInfo?> classes)
+    static void GenerateCode(SourceProductionContext context, ImmutableArray<ShellMapInfo?> classes, (bool GenerateRouteConstants, bool GenerateNavExtensions) options)
     {
         var validClasses = classes.Where(c => c != null).Cast<ShellMapInfo>().ToImmutableArray();
-        
-        if (validClasses.IsEmpty)
+
+        // Validate generated names are valid C# identifiers
+        var checkedClasses = ImmutableArray.CreateBuilder<ShellMapInfo>();
+        foreach (var cls in validClasses)
+        {
+            if (!SyntaxFacts.IsValidIdentifier(cls.GeneratedName))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    InvalidRouteIdentifier,
+                    cls.AttributeLocation,
+                    cls.Route,
+                    cls.GeneratedName
+                ));
+            }
+            else
+            {
+                checkedClasses.Add(cls);
+            }
+        }
+        var filtered = checkedClasses.ToImmutable();
+
+        // Always generate AddGeneratedMaps so user can use it immediately
+        GenerateNavigationBuilderExtensions(context, filtered);
+
+        if (filtered.IsEmpty)
             return;
 
-        // Generate Routes class
-        GenerateRoutesClass(context, validClasses);
+        // Generate Routes class only if enabled
+        if (options.GenerateRouteConstants)
+            GenerateRoutesClass(context, filtered);
         
-        // Generate NavigationExtensions class
-        GenerateNavigationExtensions(context, validClasses);
-        
-        // Generate NavigationBuilderExtensions class
-        GenerateNavigationBuilderExtensions(context, validClasses);
+        // Generate NavigationExtensions class only if enabled
+        if (options.GenerateNavExtensions)
+            GenerateNavigationExtensions(context, filtered);
     }
 
     static void GenerateRoutesClass(SourceProductionContext context, ImmutableArray<ShellMapInfo> classes)
@@ -233,7 +280,7 @@ public class ShinyShellGenerator : IIncrementalGenerator
         
         foreach (var cls in classes)
         {
-            var constantName = cls.PageTypeName.Replace("Page", "");
+            var constantName = cls.GeneratedName;
             sb.AppendLine($"    public const string {constantName} = \"{cls.Route}\";");
         }
         
@@ -251,7 +298,7 @@ public class ShinyShellGenerator : IIncrementalGenerator
         
         foreach (var cls in classes)
         {
-            var methodName = $"NavigateTo{cls.PageTypeName.Replace("Page", "")}";
+            var methodName = $"NavigateTo{cls.GeneratedName}";
             var requiredParams = cls.Properties.Where(p => p.IsRequired).ToList();
             var optionalParams = cls.Properties.Where(p => !p.IsRequired).ToList();
             
@@ -316,14 +363,13 @@ public class ShinyShellGenerator : IIncrementalGenerator
         
         foreach (var cls in classes)
         {
-            var constantName = cls.PageTypeName.Replace("Page", "");
             if (cls.RegisterRoute)
             {
-                sb.AppendLine($"        builder.Add<{cls.PageTypeFullName}, {cls.ViewModelFullName}>(Routes.{constantName});");
+                sb.AppendLine($"        builder.Add<{cls.PageTypeFullName}, {cls.ViewModelFullName}>(\"{cls.Route}\");");
             }
             else
             {
-                sb.AppendLine($"        builder.Add<{cls.PageTypeFullName}, {cls.ViewModelFullName}>(Routes.{constantName}, registerRoute: false);");
+                sb.AppendLine($"        builder.Add<{cls.PageTypeFullName}, {cls.ViewModelFullName}>(\"{cls.Route}\", registerRoute: false);");
             }
         }
         
@@ -353,8 +399,10 @@ record ShellMapInfo(
     string PageTypeName,
     string PageTypeFullName,
     string Route,
+    string GeneratedName,
     bool RegisterRoute,
-    ImmutableArray<ShellPropertyInfo> Properties
+    ImmutableArray<ShellPropertyInfo> Properties,
+    Location? AttributeLocation
 );
 
 record ShellPropertyInfo(

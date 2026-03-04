@@ -12,6 +12,7 @@
         -->
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <NoWarn>$(NoWarn);RS2008</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

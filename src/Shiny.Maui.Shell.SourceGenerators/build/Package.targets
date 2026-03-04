@@ -1,5 +1,7 @@
 <Project>
     <ItemGroup>
         <CompilerVisibleProperty Include="RootNamespace" />
+        <CompilerVisibleProperty Include="ShinyMauiShell_GenerateRouteConstants" />
+        <CompilerVisibleProperty Include="ShinyMauiShell_GenerateNavExtensions" />
     </ItemGroup>
 </Project>
