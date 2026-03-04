@@ -29,9 +29,11 @@ Inspired by [Prism Library](https://prismlibrary.com) by Dan Siegel and Brian La
   - OnNavigatingFrom parameter mutation
   - Automatic disposal when removed from the stack
 - **Source Generation**
-  - Static route constants
+  - Static route constants (route name drives the constant name)
   - Strongly-typed navigation extension methods
   - DI registration via `AddGeneratedMaps()`
+  - Configurable — disable route constants or nav extensions via MSBuild properties
+  - Invalid route names produce compiler errors (SHINY001)
 
 ---
 
@@ -58,8 +60,8 @@ builder
     .UseMauiApp<App>()
     .UseShinyShell(x => x
         .Add<MainPage, MainViewModel>(registerRoute: false) // pages in AppShell.xaml
-        .Add<DetailPage, DetailViewModel>("detail")
-        .Add<SettingsPage, SettingsViewModel>("settings")
+        .Add<DetailPage, DetailViewModel>("Detail")
+        .Add<SettingsPage, SettingsViewModel>("Settings")
     );
 ```
 
@@ -74,7 +76,7 @@ Inject `INavigator` into your ViewModels:
 public class MyViewModel(INavigator navigator)
 {
     // Route-based navigation with args
-    await navigator.NavigateTo("detail", ("ItemId", "123"));
+    await navigator.NavigateTo("Detail", ("ItemId", "123"));
 
     // ViewModel-based navigation with strongly-typed configuration
     await navigator.NavigateTo<DetailViewModel>(vm => vm.ItemId = "123");
@@ -168,7 +170,7 @@ Implement these interfaces on your ViewModels as needed. Works just like [Prism 
 | `IDisposable` | `Dispose()` | Cleanup when page is removed from the stack |
 
 ```csharp
-[ShellMap<DetailPage>("detail")]
+[ShellMap<DetailPage>("Detail")]
 public partial class DetailViewModel(INavigator navigator) : ObservableObject,
     IQueryAttributable,
     IPageLifecycleAware,
@@ -206,7 +208,7 @@ Decorate your ViewModels with `[ShellMap]` and `[ShellProperty]` to eliminate bo
 
 **Input:**
 ```csharp
-[ShellMap<DetailPage>("detail")]
+[ShellMap<DetailPage>("Detail")]
 public partial class DetailViewModel : ObservableObject
 {
     [ShellProperty]
@@ -220,13 +222,13 @@ public partial class DetailViewModel : ObservableObject
 **Generated output:**
 
 ```csharp
-// Routes.g.cs
+// Routes.g.cs — constant name matches the route parameter
 public static class Routes
 {
-    public const string Detail = "detail";
+    public const string Detail = "Detail";
 }
 
-// NavigationExtensions.g.cs
+// NavigationExtensions.g.cs — method name matches the route parameter
 public static class NavigationExtensions
 {
     public static Task NavigateToDetail(this INavigator navigator, string itemId, int page = default)
@@ -239,12 +241,12 @@ public static class NavigationExtensions
     }
 }
 
-// NavigationBuilderExtensions.g.cs
+// NavigationBuilderExtensions.g.cs — uses string literals (not Routes.*)
 public static class NavigationBuilderExtensions
 {
     public static ShinyAppBuilder AddGeneratedMaps(this ShinyAppBuilder builder)
     {
-        builder.Add<DetailPage, DetailViewModel>(Routes.Detail);
+        builder.Add<DetailPage, DetailViewModel>("Detail");
         return builder;
     }
 }
@@ -258,3 +260,35 @@ builder.UseShinyShell(x => x.AddGeneratedMaps());
 // Navigate with generated extension methods - no guesswork
 await navigator.NavigateToDetail("123", page: 2);
 ```
+
+### Route Naming
+
+The `route` parameter in `[ShellMap]` drives the generated constant and method names. It must be a valid C# identifier — invalid names produce a **SHINY001** compiler error.
+
+```csharp
+// Route drives the constant and method name
+[ShellMap<HomePage>("Dashboard")]
+// → Routes.Dashboard = "Dashboard"
+// → NavigateToDashboard(...)
+
+// No route — falls back to page type name without "Page" suffix
+[ShellMap<HomePage>]
+// → Routes.Home = "HomePage"
+// → NavigateToHome(...)
+```
+
+### Configuring Source Generation
+
+Disable individual generated files via MSBuild properties:
+
+```xml
+<PropertyGroup>
+    <!-- Disable Routes.g.cs -->
+    <ShinyMauiShell_GenerateRouteConstants>false</ShinyMauiShell_GenerateRouteConstants>
+
+    <!-- Disable NavigationExtensions.g.cs -->
+    <ShinyMauiShell_GenerateNavExtensions>false</ShinyMauiShell_GenerateNavExtensions>
+</PropertyGroup>
+```
+
+`NavigationBuilderExtensions.g.cs` (`AddGeneratedMaps()`) is always generated — even when no `[ShellMap]` attributes exist yet — so you can wire up `MauiProgram.cs` immediately.
