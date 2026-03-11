@@ -85,29 +85,4 @@ public interface INavigator
     /// unique identifier, and the value represents the associated data.</param>
     /// <returns>A task that represents the asynchronous operation of navigating back.</returns>
     Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args);
-
-    
-    /// <summary>
-    /// Displays an alert dialog with a title, message, and an accept button.
-    /// </summary>
-    /// <remarks>This method is typically used to display informational messages or warnings to the user. The
-    /// dialog will not close until the user interacts with the accept button.</remarks>
-    /// <param name="title">The title of the alert dialog. Can be <see langword="null"/> to omit the title.</param>
-    /// <param name="message">The message to display in the alert dialog. This parameter is required.</param>
-    /// <param name="acceptText">The text for the accept button. Defaults to "OK" if not specified.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation of displaying the alert.</returns>
-    Task Alert(string? title, string message, string acceptText = "OK");
-
-    
-    /// <summary>
-    /// Displays a confirmation dialog with the specified title, message, and button text,  and returns the user's
-    /// response.
-    /// </summary>
-    /// <param name="title">The title of the confirmation dialog. Can be <see langword="null"/> to omit the title.</param>
-    /// <param name="message">The message displayed in the confirmation dialog. This parameter is required.</param>
-    /// <param name="acceptText">The text for the confirmation button. Defaults to "Yes" if not specified.</param>
-    /// <param name="cancelText">The text for the cancellation button. Defaults to "No" if not specified.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the user 
-    /// selects the confirmation button; otherwise, <see langword="false"/>.</returns>
-    Task<bool> Confirm(string? title, string message, string acceptText = "Yes", string cancelText = "No");
 }

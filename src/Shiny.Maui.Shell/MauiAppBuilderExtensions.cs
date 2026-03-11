@@ -16,6 +16,9 @@ public static class MauiAppBuilderExtensions
             builder.Services.AddSingleton<INavigator>(
                 sp => sp.GetRequiredService<ShinyShellNavigator>()
             );
+            builder.Services.AddSingleton<IDialogs>(
+                sp => sp.GetRequiredService<ShinyShellNavigator>()
+            );
             builder.Services.AddSingleton<IMauiInitializeService>(
                 sp => sp.GetRequiredService<ShinyShellNavigator>()
             );

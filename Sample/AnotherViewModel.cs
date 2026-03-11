@@ -6,7 +6,8 @@ namespace Sample;
 [ShellMap<AnotherPage>("another")]
 public partial class AnotherViewModel(
     ILogger<AnotherViewModel> logger,
-    INavigator navigator
+    INavigator navigator,
+    IDialogs dialogs
 ) : ObservableObject, IQueryAttributable, IPageLifecycleAware, INavigationConfirmation, INavigationAware, IDisposable
 {
     [ObservableProperty] string backArg;
@@ -29,7 +30,7 @@ public partial class AnotherViewModel(
     public void OnAppearing() => logger.LogInformation("AnotherViewModel OnAppearing");
     public void OnDisappearing() => logger.LogInformation("AnotherViewModel OnDisappearing");
 
-    public Task<bool> CanNavigate() => navigator.Confirm(
+    public Task<bool> CanNavigate() => dialogs.Confirm(
         "Confirm", 
         "Are you sure you want to navigate?", 
         "Yes", 
