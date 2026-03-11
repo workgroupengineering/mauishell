@@ -13,7 +13,7 @@ public class ShinyShellNavigator(
     IServiceProvider services,
     IDispatcher dispatcher,
     ShinyAppBuilder navBuilder
-) : INavigator, IMauiInitializeService, IDisposable
+) : INavigator, IDialogs, IMauiInitializeService, IDisposable
 {
     public event EventHandler<NavigationEventArgs>? Navigating;
     public event EventHandler<NavigatedEventArgs>? Navigated;
@@ -227,6 +227,48 @@ public class ShinyShellNavigator(
         await dispatcher.DispatchAsync(async () =>
         {
             var result = await Shell.Current.DisplayAlert(title, message, acceptText, cancelText);
+            tcs.SetResult(result);
+        });
+        return await tcs.Task.ConfigureAwait(false);
+    }
+
+
+    public async Task<string?> Prompt(
+        string? title,
+        string message,
+        string acceptText = "OK",
+        string cancelText = "Cancel",
+        string? placeholder = null,
+        string initialValue = "",
+        int maxLength = -1,
+        Keyboard? keyboard = null
+    )
+    {
+        var tcs = new TaskCompletionSource<string?>();
+        await dispatcher.DispatchAsync(async () =>
+        {
+            var result = await Shell.Current.DisplayPromptAsync(
+                title ?? string.Empty,
+                message,
+                acceptText,
+                cancelText,
+                placeholder,
+                maxLength,
+                keyboard,
+                initialValue
+            );
+            tcs.SetResult(result);
+        });
+        return await tcs.Task.ConfigureAwait(false);
+    }
+
+
+    public async Task<string> ActionSheet(string? title, string? cancel, string? destruction, params string[] buttons)
+    {
+        var tcs = new TaskCompletionSource<string>();
+        await dispatcher.DispatchAsync(async () =>
+        {
+            var result = await Shell.Current.DisplayActionSheet(title, cancel, destruction, buttons);
             tcs.SetResult(result);
         });
         return await tcs.Task.ConfigureAwait(false);
