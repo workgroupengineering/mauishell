@@ -9,7 +9,6 @@ public class ShinyShellNavigator(
     ILogger<ShinyShellNavigator> logger,
     IApplication application,
     IServiceProvider services,
-    IDispatcher dispatcher,
     ShinyAppBuilder navBuilder
 ) : INavigator, IMauiInitializeService, IDisposable
 {
@@ -94,7 +93,7 @@ public class ShinyShellNavigator(
 
 
     public Task NavigateTo(string uri, params IEnumerable<(string Key, object Value)> args) =>
-        dispatcher.DispatchAsync(() =>
+        MainThread.InvokeOnMainThreadAsync(() =>
         {
             var shell = Shell.Current;
             var parameters = args.ToDictionary(x => x.Key, x => x.Value);
@@ -142,8 +141,7 @@ public class ShinyShellNavigator(
                 tcs.TrySetResult();
             }
             else
-                tcs.TrySetException(
-                    new InvalidOperationException($"Page BindingContext is not of type '{typeof(TViewModel)}'"));
+                tcs.TrySetException(new InvalidOperationException($"Page BindingContext is not of type '{typeof(TViewModel)}'"));
         });
 
         try
@@ -156,7 +154,7 @@ public class ShinyShellNavigator(
             this.RaiseNavigating(Shell.Current, route, navType, parameters);
 
             ShinyRouteFactory.PageResolved += handler;
-            await dispatcher.DispatchAsync(() => Shell.Current.GoToAsync(route, true, parameters));
+            await MainThread.InvokeOnMainThreadAsync(() => Shell.Current.GoToAsync(route, true, parameters));
             await tcs.Task.ConfigureAwait(false);
         }
         finally
@@ -183,7 +181,7 @@ public class ShinyShellNavigator(
     public Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args) => this.DoGoBack(backCount, NavigationType.GoBack, args);
 
 
-    Task DoGoBack(int backCount, NavigationType navType, IEnumerable<(string Key, object Value)> args) => dispatcher.DispatchAsync(() =>
+    Task DoGoBack(int backCount, NavigationType navType, IEnumerable<(string Key, object Value)> args) => MainThread.InvokeOnMainThreadAsync(() =>
     {
         if (backCount < 1)
             throw new ArgumentException("Back count must be 1 or more");
