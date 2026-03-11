@@ -3,9 +3,7 @@ using Microsoft.Extensions.Logging;
 namespace Shiny.Infrastructure;
 
 
-// Absolute routes don't work with pages that are registered with the Routing.RegisterRoute method.
 // TODO: //PageName and ../../PageName or ../Page1/Page2
-// https://learn.microsoft.com/en-us/dotnet/maui/fundamentals/shell/navigation?view=net-maui-9.0
 // TODO: replace route, backCount = 2, relative
 public class ShinyShellNavigator(
     ILogger<ShinyShellNavigator> logger,
@@ -13,7 +11,7 @@ public class ShinyShellNavigator(
     IServiceProvider services,
     IDispatcher dispatcher,
     ShinyAppBuilder navBuilder
-) : INavigator, IDialogs, IMauiInitializeService, IDisposable
+) : INavigator, IMauiInitializeService, IDisposable
 {
     public event EventHandler<NavigationEventArgs>? Navigating;
     public event EventHandler<NavigatedEventArgs>? Navigated;
@@ -207,72 +205,6 @@ public class ShinyShellNavigator(
         this.RaiseNavigating(shell, uri, navType, parameters);
         return shell.GoToAsync(uri, true, parameters);
     });
-
-
-    public async Task Alert(string? title, string message, string acceptText = "OK")
-    {
-        var tcs = new TaskCompletionSource();
-        await dispatcher.DispatchAsync(async () =>
-        {
-            await Shell.Current.DisplayAlert(title, message, acceptText);
-            tcs.SetResult();
-        });
-        await tcs.Task;
-    }
-    
-
-    public async Task<bool> Confirm(string? title, string message, string acceptText = "Yes", string cancelText = "No")
-    {
-        var tcs = new TaskCompletionSource<bool>();
-        await dispatcher.DispatchAsync(async () =>
-        {
-            var result = await Shell.Current.DisplayAlert(title, message, acceptText, cancelText);
-            tcs.SetResult(result);
-        });
-        return await tcs.Task.ConfigureAwait(false);
-    }
-
-
-    public async Task<string?> Prompt(
-        string? title,
-        string message,
-        string acceptText = "OK",
-        string cancelText = "Cancel",
-        string? placeholder = null,
-        string initialValue = "",
-        int maxLength = -1,
-        Keyboard? keyboard = null
-    )
-    {
-        var tcs = new TaskCompletionSource<string?>();
-        await dispatcher.DispatchAsync(async () =>
-        {
-            var result = await Shell.Current.DisplayPromptAsync(
-                title ?? string.Empty,
-                message,
-                acceptText,
-                cancelText,
-                placeholder,
-                maxLength,
-                keyboard,
-                initialValue
-            );
-            tcs.SetResult(result);
-        });
-        return await tcs.Task.ConfigureAwait(false);
-    }
-
-
-    public async Task<string> ActionSheet(string? title, string? cancel, string? destruction, params string[] buttons)
-    {
-        var tcs = new TaskCompletionSource<string>();
-        await dispatcher.DispatchAsync(async () =>
-        {
-            var result = await Shell.Current.DisplayActionSheet(title, cancel, destruction, buttons);
-            tcs.SetResult(result);
-        });
-        return await tcs.Task.ConfigureAwait(false);
-    }
     
     
     void AppOnDescendantAdded(object? sender, ElementEventArgs args)
