@@ -18,6 +18,34 @@ public partial class AnotherViewModel(
     [RelayCommand] Task ResetToRoot() => navigator.SetRoot<MainViewModel>(x => x.BackArg = "RESET TO ROOT");
     [RelayCommand] Task PushAnother() => navigator.NavigateTo("another", ("Arg", "Pushing Another"));
     [RelayCommand] Task PopToRoot() => navigator.PopToRoot(("ToTheBack", "POPPED TO ROOT"));
+
+    [ObservableProperty] string dialogResult;
+    
+    [RelayCommand]
+    async Task ShowConfirm()
+    {
+        var result = await dialogs.Confirm("Confirm", "Do you want to proceed?", "Yes", "No");
+        this.DialogResult = $"Confirm: {result}";
+    }
+    
+    [RelayCommand]
+    async Task ShowPrompt()
+    {
+        var result = await dialogs.Prompt(
+            "Prompt",
+            "Enter your name",
+            placeholder: "Your name here",
+            maxLength: 50
+        );
+        this.DialogResult = result != null ? $"Prompt: {result}" : "Prompt: (cancelled)";
+    }
+    
+    [RelayCommand]
+    async Task ShowActionSheet()
+    {
+        var result = await dialogs.ActionSheet("Choose an Option", "Cancel", "Delete", "Edit", "Share", "Copy");
+        this.DialogResult = $"ActionSheet: {result}";
+    }
     
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {

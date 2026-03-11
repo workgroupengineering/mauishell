@@ -15,6 +15,21 @@
         <Label Text="You navigated here by viewmodel" 
                IsVisible="{Binding IsNavFromViewModel}" />
         
+        <Label Text="--- Dialogs ---" FontAttributes="Bold" />
+        
+        <Button Text="Confirm"
+                Command="{Binding ShowConfirmCommand}" />
+        
+        <Button Text="Prompt"
+                Command="{Binding ShowPromptCommand}" />
+        
+        <Button Text="Action Sheet"
+                Command="{Binding ShowActionSheetCommand}" />
+        
+        <Label Text="{Binding DialogResult, StringFormat='Result: {0}'}" />
+        
+        <Label Text="--- Navigation ---" FontAttributes="Bold" />
+        
         <Button Text="Reset Root"
                 Command="{Binding ResetToRootCommand}" />
         
