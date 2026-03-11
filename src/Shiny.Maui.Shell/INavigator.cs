@@ -85,4 +85,24 @@ public interface INavigator
     /// unique identifier, and the value represents the associated data.</param>
     /// <returns>A task that represents the asynchronous operation of navigating back.</returns>
     Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args);
+
+
+    /// <summary>
+    /// Switches the application's main page to the specified Shell instance, replacing the current Shell entirely.
+    /// </summary>
+    /// <remarks>This replaces the current <see cref="Application.MainPage"/> with the provided Shell instance,
+    /// effectively resetting the navigation stack. Use this for scenarios like switching between a login shell and a main app shell.</remarks>
+    /// <param name="shell">The Shell instance to switch to.</param>
+    /// <returns>A task that represents the asynchronous shell switch operation.</returns>
+    Task SwitchShell(Shell shell);
+
+
+    /// <summary>
+    /// Switches the application's main page to a Shell instance resolved from the dependency injection container.
+    /// </summary>
+    /// <remarks>This resolves the specified Shell type from the service provider and replaces the current
+    /// <see cref="Application.MainPage"/>, effectively resetting the navigation stack.</remarks>
+    /// <typeparam name="TShell">The type of Shell to resolve and switch to. Must be registered in the DI container.</typeparam>
+    /// <returns>A task that represents the asynchronous shell switch operation.</returns>
+    Task SwitchShell<TShell>() where TShell : Shell;
 }

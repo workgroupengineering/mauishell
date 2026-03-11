@@ -1,3 +1,5 @@
+using Shiny;
+
 namespace Sample;
 
 public partial class FlyoutShell : Shell
@@ -7,6 +9,17 @@ public partial class FlyoutShell : Shell
         this.InitializeComponent();
     }
 
-    void OnSwitchToStandard(object? sender, EventArgs e) => App.SetShell(ShellType.Standard);
-    void OnSwitchToTabbed(object? sender, EventArgs e) => App.SetShell(ShellType.Tabbed);
+    async void OnSwitchToStandard(object? sender, EventArgs e)
+    {
+        var navigator = Handler!.MauiContext!.Services.GetRequiredService<INavigator>();
+        App.SetShellPreference(ShellType.Standard);
+        await navigator.SwitchShell(App.CreateShell(ShellType.Standard));
+    }
+
+    async void OnSwitchToTabbed(object? sender, EventArgs e)
+    {
+        var navigator = Handler!.MauiContext!.Services.GetRequiredService<INavigator>();
+        App.SetShellPreference(ShellType.Tabbed);
+        await navigator.SwitchShell(App.CreateShell(ShellType.Tabbed));
+    }
 }

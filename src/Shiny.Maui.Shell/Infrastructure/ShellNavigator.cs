@@ -181,6 +181,68 @@ public class ShinyShellNavigator(
     public Task GoBack(int backCount = 1, params IEnumerable<(string Key, object Value)> args) => this.DoGoBack(backCount, NavigationType.GoBack, args);
 
 
+    public async Task SwitchShell(Shell shell)
+    {
+        ArgumentNullException.ThrowIfNull(shell);
+
+        if (application is not Application app)
+            throw new InvalidOperationException($"Invalid MAUI Application - {application.GetType()}");
+
+        var currentShell = Shell.Current;
+        var parameters = new Dictionary<string, object>();
+
+        if (currentShell?.CurrentPage?.BindingContext is INavigationAware navAware)
+            navAware.OnNavigatingFrom(parameters);
+
+        if (currentShell != null)
+        {
+            this.RaiseNavigating(
+                currentShell,
+                shell.GetType().Name,
+                NavigationType.SwitchShell,
+                parameters
+            );
+        }
+
+        if (app.Windows.Count == 0)
+            throw new InvalidOperationException("No active window to switch Shell on");
+
+        // Two-phase swap: first replace the current Shell with a temporary blank page.
+        // This forces the platform to tear down the old Shell handlers and puts the
+        // native window (UIWindow on iOS) into a clean state — avoiding the crash in
+        // ShellFlyoutRenderer.ViewDidLoad that occurs when a new Shell handler is
+        // created while the old Shell's native view hierarchy is still active.
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            var window = app.Windows[0];
+            if (window.Page?.Handler is IElementHandler oldHandler)
+            {
+                logger.LogDebug("Disconnecting old handler '{type}'", oldHandler.GetType().Name);
+                oldHandler.DisconnectHandler();
+            }
+            window.Page = new ContentPage();
+        });
+
+        // Yield to let the platform fully process the interim page and clean up native state
+        await Task.Delay(50).ConfigureAwait(false);
+
+        // Now set the actual Shell in a clean window state
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            var window = app.Windows[0];
+            window.Page = shell;
+            logger.LogDebug("Switched Shell to '{type}'", shell.GetType().Name);
+        });
+    }
+
+
+    public Task SwitchShell<TShell>() where TShell : Shell
+    {
+        var shell = services.GetRequiredService<TShell>();
+        return this.SwitchShell(shell);
+    }
+
+
     Task DoGoBack(int backCount, NavigationType navType, IEnumerable<(string Key, object Value)> args) => MainThread.InvokeOnMainThreadAsync(() =>
     {
         if (backCount < 1)

@@ -5,5 +5,6 @@ public enum NavigationType
     Push,
     SetRoot,
     GoBack,
-    PopToRoot
+    PopToRoot,
+    SwitchShell
 }

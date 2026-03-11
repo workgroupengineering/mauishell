@@ -12,31 +12,62 @@ Inspired by [Prism Library](https://prismlibrary.com) by Dan Siegel and Brian La
 
 ## Features
 
-- **Page-ViewModel Registration** - Easy mapping with automatic BindingContext assignment
-- **No special AppShell subclass** - Works with your existing AppShell.xaml
-- **Testable Navigation Service** (`INavigator`)
-  - Route-based and ViewModel-based navigation
-  - Strongly-typed ViewModel configuration
-  - GoBack, PopToRoot, SetRoot
-  - Modal and tab support
-- **Dialog Service** (`IDialogs`)
-  - Alert, Confirm, Prompt, and ActionSheet dialogs
-  - Thread-safe — dispatches to the UI thread automatically
-  - Inject separately from `INavigator` for clean separation of concerns
-- **Navigation Events**
-  - `Navigating` event with source ViewModel instance (pre-navigation)
-  - `Navigated` event with destination ViewModel instance (post-navigation)
-- **ViewModel Lifecycle**
-  - OnAppearing / OnDisappearing
-  - Navigation confirmation guards
-  - OnNavigatingFrom parameter mutation
-  - Automatic disposal when removed from the stack
-- **Source Generation**
-  - Static route constants (route name drives the constant name)
-  - Strongly-typed navigation extension methods
-  - DI registration via `AddGeneratedMaps()`
-  - Configurable — disable route constants or nav extensions via MSBuild properties
-  - Invalid route names produce compiler errors (SHINY001)
+### 🧭 Navigation — `INavigator`
+
+| Capability | Description |
+|:-----------|:------------|
+| Route-based | `NavigateTo("Detail", ("Id", "123"))` |
+| ViewModel-based | `NavigateTo<DetailViewModel>(vm => vm.Id = "123")` |
+| Source-generated | `NavigateToDetail("123")` — zero guesswork |
+| GoBack | Single page, multi-page `GoBack(3)`, or `PopToRoot()` |
+| SetRoot | `SetRoot<DashboardViewModel>()` — reset the navigation stack |
+| Shell switching | `SwitchShell(new MainShell())` or `SwitchShell<TShell>()` via DI |
+
+### 💬 Dialogs — `IDialogs`
+
+| Method | Returns |
+|:-------|:--------|
+| `Alert(title, message)` | `Task` |
+| `Confirm(title, message)` | `Task<bool>` |
+| `Prompt(title, message)` | `Task<string?>` |
+| `ActionSheet(title, cancel, destructive, ...buttons)` | `Task<string>` |
+
+> Thread-safe — dispatches to UI thread automatically. Inject separately from `INavigator` for clean separation of concerns.
+
+### 📡 Navigation Events
+
+| Event | Fires | Key Properties |
+|:------|:------|:---------------|
+| `Navigating` | Before navigation | `FromUri` · `FromViewModel` · `ToUri` · `NavigationType` · `Parameters` |
+| `Navigated` | After page resolves | `ToUri` · `ToViewModel` · `NavigationType` · `Parameters` |
+
+`NavigationType`: `Push` · `SetRoot` · `GoBack` · `PopToRoot` · `SwitchShell`
+
+### ♻️ ViewModel Lifecycle
+
+| Interface | Method | Purpose |
+|:----------|:-------|:--------|
+| `IPageLifecycleAware` | `OnAppearing()` / `OnDisappearing()` | Page visibility hooks |
+| `INavigationConfirmation` | `Task<bool> CanNavigate()` | Guard navigation (unsaved changes, etc.) |
+| `INavigationAware` | `OnNavigatingFrom(params)` | Mutate parameters before leaving |
+| `IQueryAttributable` | `ApplyQueryAttributes(params)` | Receive navigation parameters |
+| `IDisposable` | `Dispose()` | Cleanup when page leaves the stack |
+
+### ⚡ Source Generation
+
+| Generated File | What It Does |
+|:----------------|:------------|
+| `Routes.g.cs` | Static route constants — `Routes.Detail` |
+| `NavigationExtensions.g.cs` | Typed methods — `NavigateToDetail(id, page)` |
+| `NavigationBuilderExtensions.g.cs` | One-line DI — `AddGeneratedMaps()` |
+
+> Invalid route names produce **SHINY001** compiler errors. Disable individual outputs via MSBuild properties.
+
+### ✅ Zero Ceremony
+
+- Works with your **existing AppShell.xaml** — no special subclass required
+- Page–ViewModel mapping with **automatic BindingContext** assignment
+- Drop-in `[ShellMap]` attribute replaces manual route registration
 
 ---
 
@@ -98,6 +129,12 @@ public class MyViewModel(INavigator navigator)
 
     // Replace root page
     await navigator.SetRoot<DashboardViewModel>();
+
+    // Switch to a different Shell instance
+    await navigator.SwitchShell(new MainAppShell());
+
+    // Switch to a Shell resolved from DI
+    await navigator.SwitchShell<MainAppShell>();
 }
 ```
 
@@ -136,26 +173,7 @@ public class MyViewModel(IDialogs dialogs)
 
 ## Navigation Events
 
-`INavigator` exposes two events for observing navigation:
-
-| Event | When | Key Data |
-|-------|------|----------|
-| `Navigating` | Before navigation | `FromUri`, `FromViewModel`, `ToUri`, `NavigationType`, `Parameters` |
-| `Navigated` | After page resolves | `ToUri`, `ToViewModel`, `NavigationType`, `Parameters` |
-
-```csharp
-navigator.Navigating += (sender, args) =>
-{
-    Console.WriteLine($"Leaving {args.FromViewModel?.GetType().Name} -> {args.ToUri}");
-};
-
-navigator.Navigated += (sender, args) =>
-{
-    Console.WriteLine($"Arrived at {args.ToViewModel?.GetType().Name}");
-};
-```
-
-Hook these in an `IMauiInitializeService` for cross-cutting concerns like logging or analytics:
+Subscribe to `Navigating` and `Navigated` on `INavigator` for cross-cutting concerns like logging or analytics:
 
 ```csharp
 public class NavigationLogger(
@@ -184,14 +202,6 @@ builder.Services.AddSingleton<IMauiInitializeService, NavigationLogger>();
 ## ViewModel Lifecycle
 
 Implement these interfaces on your ViewModels as needed. Works just like [Prism Library](https://prismlibrary.com).
-
-| Interface | Method | Purpose |
-|-----------|--------|---------|
-| `IPageLifecycleAware` | `OnAppearing()` / `OnDisappearing()` | Page visibility hooks |
-| `INavigationConfirmation` | `Task<bool> CanNavigate()` | Block navigation (e.g., unsaved changes) |
-| `INavigationAware` | `OnNavigatingFrom(IDictionary<string, object>)` | Mutate parameters before leaving |
-| `IQueryAttributable` | `ApplyQueryAttributes(IDictionary<string, object>)` | Receive navigation parameters |
-| `IDisposable` | `Dispose()` | Cleanup when page is removed from the stack |
 
 ```csharp
 [ShellMap<DetailPage>("Detail")]

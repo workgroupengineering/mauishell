@@ -30,7 +30,8 @@ public partial class MainViewModel(
             if (SetProperty(ref selectedShellType, value) && value != null)
             {
                 var shellType = Enum.Parse<ShellType>(value);
-                App.SetShell(shellType);
+                App.SetShellPreference(shellType);
+                navigator.SwitchShell(App.CreateShell(shellType));
             }
         }
     }

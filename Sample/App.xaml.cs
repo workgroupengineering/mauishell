@@ -20,13 +20,6 @@ public partial class App : Application
         _ => new AppShell()
     };
 
-    public static void SetShell(ShellType shellType)
-    {
-        Preferences.Default.Set("ShellType", shellType.ToString());
-
-        if (Current?.Windows.Count > 0)
-        {
-            Current.Windows[0].Page = CreateShell(shellType);
-        }
-    }
+    public static void SetShellPreference(ShellType shellType)
+        => Preferences.Default.Set("ShellType", shellType.ToString());
 }
