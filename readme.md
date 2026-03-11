@@ -19,7 +19,10 @@ Inspired by [Prism Library](https://prismlibrary.com) by Dan Siegel and Brian La
   - Strongly-typed ViewModel configuration
   - GoBack, PopToRoot, SetRoot
   - Modal and tab support
-  - Alert and Confirm dialogs
+- **Dialog Service** (`IDialogs`)
+  - Alert, Confirm, Prompt, and ActionSheet dialogs
+  - Thread-safe — dispatches to the UI thread automatically
+  - Inject separately from `INavigator` for clean separation of concerns
 - **Navigation Events**
   - `Navigating` event with source ViewModel instance (pre-navigation)
   - `Navigated` event with destination ViewModel instance (post-navigation)
@@ -95,18 +98,39 @@ public class MyViewModel(INavigator navigator)
 
     // Replace root page
     await navigator.SetRoot<DashboardViewModel>();
-
-    // Dialogs
-    await navigator.Alert("Error", "Something went wrong");
-    if (await navigator.Confirm("Delete?", "Are you sure?"))
-    {
-        // delete
-    }
 }
 ```
 
 > [!NOTE]
 > If you're setting arguments on the ViewModel navigation, you should make them observable if they are bound on the Page.
+
+### 4. Dialogs
+
+Inject `IDialogs` for user-facing dialogs:
+
+```csharp
+public class MyViewModel(IDialogs dialogs)
+{
+    // Alert
+    await dialogs.Alert("Error", "Something went wrong");
+
+    // Confirm
+    if (await dialogs.Confirm("Delete?", "Are you sure?"))
+    {
+        // delete
+    }
+
+    // Prompt for text input
+    var name = await dialogs.Prompt("Name", "Enter your name", placeholder: "John Doe");
+    if (name != null)
+    {
+        // user entered a value
+    }
+
+    // Action sheet
+    var choice = await dialogs.ActionSheet("Options", "Cancel", "Delete", "Edit", "Share");
+}
+```
 
 ---
 
@@ -171,7 +195,7 @@ Implement these interfaces on your ViewModels as needed. Works just like [Prism 
 
 ```csharp
 [ShellMap<DetailPage>("Detail")]
-public partial class DetailViewModel(INavigator navigator) : ObservableObject,
+public partial class DetailViewModel(INavigator navigator, IDialogs dialogs) : ObservableObject,
     IQueryAttributable,
     IPageLifecycleAware,
     INavigationConfirmation,
@@ -193,7 +217,7 @@ public partial class DetailViewModel(INavigator navigator) : ObservableObject,
     public async Task<bool> CanNavigate()
     {
         if (!hasUnsavedChanges) return true;
-        return await navigator.Confirm("Unsaved Changes", "Discard changes?");
+        return await dialogs.Confirm("Unsaved Changes", "Discard changes?");
     }
 
     public void Dispose() { /* cleanup */ }
