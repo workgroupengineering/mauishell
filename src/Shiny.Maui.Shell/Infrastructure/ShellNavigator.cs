@@ -17,6 +17,7 @@ public class ShinyShellNavigator(
 
     record PendingNavigation(string ToUri, NavigationType NavigationType, IReadOnlyDictionary<string, object> Parameters);
     PendingNavigation? pendingNavigation;
+    bool isProgrammaticNavigation;
 
     public void Initialize(IServiceProvider _)
     {
@@ -102,6 +103,7 @@ public class ShinyShellNavigator(
                 navAware.OnNavigatingFrom(parameters);
 
             this.RaiseNavigating(shell, uri, NavigationType.Push, parameters);
+            this.isProgrammaticNavigation = true;
             return shell.GoToAsync(uri, true, parameters);
         });
 
@@ -154,6 +156,7 @@ public class ShinyShellNavigator(
             this.RaiseNavigating(Shell.Current, route, navType, parameters);
 
             ShinyRouteFactory.PageResolved += handler;
+            this.isProgrammaticNavigation = true;
             await MainThread.InvokeOnMainThreadAsync(() => Shell.Current.GoToAsync(route, true, parameters));
             await tcs.Task.ConfigureAwait(false);
         }
@@ -263,6 +266,7 @@ public class ShinyShellNavigator(
             navAware.OnNavigatingFrom(parameters);
 
         this.RaiseNavigating(shell, uri, navType, parameters);
+        this.isProgrammaticNavigation = true;
         return shell.GoToAsync(uri, true, parameters);
     });
     
@@ -273,6 +277,12 @@ public class ShinyShellNavigator(
         {
             shell.Navigating += async (_, shellArgs) =>
             {
+                if (this.isProgrammaticNavigation)
+                {
+                    this.isProgrammaticNavigation = false;
+                    return;
+                }
+                
                 var vm = shell.CurrentPage?.BindingContext;
 
                 if (vm is INavigationConfirmation confirm)
