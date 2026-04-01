@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Shiny;
 
 
-public sealed class ShinyAppBuilder
+public sealed class ShinyAppBuilder(IServiceCollection services)
 {
     readonly Dictionary<string, (bool RegisterRoute, Type PageType, Type ViewModelType)> typeMap = new();
 
@@ -24,6 +24,18 @@ public sealed class ShinyAppBuilder
     {
         route ??= typeof(TPage).Name;
         this.typeMap[route] = (registerRoute, typeof(TPage), typeof(TViewModel));
+        return this;
+    }
+
+
+    /// <summary>
+    /// Sets the dialog provider you want to use
+    /// </summary>
+    /// <typeparam name="TDialog"></typeparam>
+    /// <returns></returns>
+    public ShinyAppBuilder UseDialogs<TDialog>() where TDialog : class, IDialogs
+    {
+        services.AddSingleton<IDialogs, TDialog>();
         return this;
     }
 
