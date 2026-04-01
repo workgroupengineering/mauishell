@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Shell
+<shiny:ShinyShell
     x:Class="Sample.FlyoutShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:shiny="clr-namespace:Shiny;assembly=Shiny.Maui.Shell"
     xmlns:local="clr-namespace:Sample"
     Title="Sample (Flyout)"
     FlyoutBehavior="Flyout">
@@ -16,4 +17,4 @@
     <MenuItem Text="Switch to Standard" Clicked="OnSwitchToStandard" />
     <MenuItem Text="Switch to Tabbed" Clicked="OnSwitchToTabbed" />
 
-</Shell>
+</shiny:ShinyShell>

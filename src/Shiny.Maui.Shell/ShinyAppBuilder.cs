@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Shiny;
 
 
-public sealed class ShinyAppBuilder
+public sealed class ShinyAppBuilder(MauiAppBuilder builder)
 {
     readonly Dictionary<string, (bool RegisterRoute, Type PageType, Type ViewModelType)> typeMap = new();
 
@@ -24,6 +24,18 @@ public sealed class ShinyAppBuilder
     {
         route ??= typeof(TPage).Name;
         this.typeMap[route] = (registerRoute, typeof(TPage), typeof(TViewModel));
+        return this;
+    }
+
+
+    /// <summary>
+    /// Sets the dialog provider you want to use
+    /// </summary>
+    /// <typeparam name="TDialog"></typeparam>
+    /// <returns></returns>
+    public ShinyAppBuilder UseDialogs<TDialog>() where TDialog : class, IDialogs
+    {
+        builder.Services.AddSingleton<IDialogs, TDialog>();
         return this;
     }
 
@@ -62,12 +74,13 @@ public sealed class ShinyAppBuilder
     }
     
     
-    internal void RegisterDependencies(IServiceCollection services)
+    internal void RegisterDependencies()
     {
         foreach (var pair in this.typeMap)
         {
-            services.AddTransient(pair.Value.PageType);
-            services.AddTransient(pair.Value.ViewModelType);
+            builder.Services.AddTransient(pair.Value.PageType);
+            builder.Services.AddTransient(pair.Value.ViewModelType);
+            
             if (pair.Value.RegisterRoute)
             {
                 Routing.RegisterRoute(

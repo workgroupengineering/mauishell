@@ -6,12 +6,13 @@ public static class MauiAppBuilderExtensions
 {
     public static MauiAppBuilder UseShinyShell(this MauiAppBuilder builder, Action<ShinyAppBuilder> navBuilderAction)
     {
-        var navBuilder = new ShinyAppBuilder();
+        var navBuilder = new ShinyAppBuilder(builder);
         navBuilderAction.Invoke(navBuilder);
-        navBuilder.RegisterDependencies(builder.Services);
+        navBuilder.RegisterDependencies();
         
         if (!builder.Services.Any(x => x.ImplementationType == typeof(ShinyShellNavigator)))
         {
+            builder.Services.AddSingleton<ShellServices>();
             builder.Services.AddSingleton<ShinyShellNavigator>();
             builder.Services.AddSingleton<INavigator>(
                 sp => sp.GetRequiredService<ShinyShellNavigator>()
@@ -19,7 +20,7 @@ public static class MauiAppBuilderExtensions
             builder.Services.AddSingleton<IMauiInitializeService>(
                 sp => sp.GetRequiredService<ShinyShellNavigator>()
             );
-            builder.Services.AddSingleton<IDialogs, ShellDialogs>();
+            builder.Services.TryAddSingleton<IDialogs, ShellDialogs>();
             builder.Services.AddSingleton(navBuilder);
         }
         

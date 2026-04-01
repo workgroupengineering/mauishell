@@ -1,6 +1,8 @@
-﻿namespace Sample;
+﻿using Shiny;
 
-public partial class AppShell : Shell
+namespace Sample;
+
+public partial class AppShell : ShinyShell
 {
     public AppShell()
     {

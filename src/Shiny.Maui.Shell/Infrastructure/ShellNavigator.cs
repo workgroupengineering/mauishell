@@ -311,20 +311,14 @@ public class ShinyShellNavigator(
     
     void AppOnPageAppearing(object? sender, Page page)
     {
-        if (page.BindingContext == null)
+        // BindingContext may be inherited from Shell rather than explicitly set —
+        // check whether it's already the correct ViewModel type
+        var viewModelType = navBuilder.GetViewModelTypeForPage(page);
+        if (viewModelType != null && (page.BindingContext == null || !viewModelType.IsInstanceOfType(page.BindingContext)))
         {
-            // needed for initial pags - IQueryAttributable would be missed
-            var viewModelType = navBuilder.GetViewModelTypeForPage(page);
-            if (viewModelType == null)
-            {
-                logger.LogDebug("No ViewModel found for page");
-            }
-            else
-            {
-                var vm = services.GetService(viewModelType);
-                page.BindingContext = vm;
-                logger.LogDebug("[Binding] ViewModel {type} set on page", viewModelType);
-            }
+            var vm = services.GetService(viewModelType);
+            page.BindingContext = vm;
+            logger.LogDebug("[Binding] ViewModel {type} set on page", viewModelType);
         }
 
         if (page.BindingContext is IPageLifecycleAware lc)
