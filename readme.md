@@ -65,7 +65,7 @@ Inspired by [Prism Library](https://prismlibrary.com) by Dan Siegel and Brian La
 
 ### ✅ Zero Ceremony
 
-- Works with your **existing AppShell.xaml** — no special subclass required
+- One base class change — `AppShell : ShinyShell` — for deterministic BindingContext assignment
 - Page–ViewModel mapping with **automatic BindingContext** assignment
 - Drop-in `[ShellMap]` attribute replaces manual route registration
 
@@ -99,10 +99,47 @@ builder
     );
 ```
 
-> [!NOTE]
-> The default MAUI AppShell.xaml does not need any modification to work with this library. Pages defined in AppShell.xaml should use `registerRoute: false`.
+### 3. Set up AppShell
 
-### 3. Navigate
+Your `AppShell` must inherit from `ShinyShell` instead of `Shell`:
+
+**AppShell.xaml:**
+```xml
+<shiny:ShinyShell
+    x:Class="MyApp.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:shiny="clr-namespace:Shiny;assembly=Shiny.Maui.Shell"
+    xmlns:local="clr-namespace:MyApp"
+    Title="MyApp">
+
+    <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage" />
+
+</shiny:ShinyShell>
+```
+
+**AppShell.xaml.cs:**
+```csharp
+using Shiny;
+
+namespace MyApp;
+
+public partial class AppShell : ShinyShell
+{
+    public AppShell()
+    {
+        InitializeComponent();
+    }
+}
+```
+
+> [!NOTE]
+> Pages defined in AppShell.xaml should use `registerRoute: false`.
+
+### 4. Navigate
 
 Inject `INavigator` into your ViewModels:
 
@@ -141,7 +178,7 @@ public class MyViewModel(INavigator navigator)
 > [!NOTE]
 > If you're setting arguments on the ViewModel navigation, you should make them observable if they are bound on the Page.
 
-### 4. Dialogs
+### 5. Dialogs
 
 Inject `IDialogs` for user-facing dialogs:
 
