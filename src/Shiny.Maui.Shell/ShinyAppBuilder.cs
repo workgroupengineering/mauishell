@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Shiny;
 
 
-public sealed class ShinyAppBuilder(IServiceCollection services)
+public sealed class ShinyAppBuilder(MauiAppBuilder builder)
 {
     readonly Dictionary<string, (bool RegisterRoute, Type PageType, Type ViewModelType)> typeMap = new();
 
@@ -35,7 +35,7 @@ public sealed class ShinyAppBuilder(IServiceCollection services)
     /// <returns></returns>
     public ShinyAppBuilder UseDialogs<TDialog>() where TDialog : class, IDialogs
     {
-        services.AddSingleton<IDialogs, TDialog>();
+        builder.Services.AddSingleton<IDialogs, TDialog>();
         return this;
     }
 
@@ -74,12 +74,13 @@ public sealed class ShinyAppBuilder(IServiceCollection services)
     }
     
     
-    internal void RegisterDependencies(IServiceCollection services)
+    internal void RegisterDependencies()
     {
         foreach (var pair in this.typeMap)
         {
-            services.AddTransient(pair.Value.PageType);
-            services.AddTransient(pair.Value.ViewModelType);
+            builder.Services.AddTransient(pair.Value.PageType);
+            builder.Services.AddTransient(pair.Value.ViewModelType);
+            
             if (pair.Value.RegisterRoute)
             {
                 Routing.RegisterRoute(

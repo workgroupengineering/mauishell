@@ -6,9 +6,9 @@ public static class MauiAppBuilderExtensions
 {
     public static MauiAppBuilder UseShinyShell(this MauiAppBuilder builder, Action<ShinyAppBuilder> navBuilderAction)
     {
-        var navBuilder = new ShinyAppBuilder();
+        var navBuilder = new ShinyAppBuilder(builder);
         navBuilderAction.Invoke(navBuilder);
-        navBuilder.RegisterDependencies(builder.Services);
+        navBuilder.RegisterDependencies();
         
         if (!builder.Services.Any(x => x.ImplementationType == typeof(ShinyShellNavigator)))
         {
