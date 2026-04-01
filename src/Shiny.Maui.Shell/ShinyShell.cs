@@ -7,7 +7,7 @@ public class ShinyShell : Shell
         base.OnNavigated(args);
 
         var page = this.CurrentPage;
-        if (page == null || page.BindingContext != null)
+        if (page == null)
             return;
 
         var services = this.Handler?.MauiContext?.Services
@@ -18,6 +18,11 @@ public class ShinyShell : Shell
         var navBuilder = services.GetService<ShinyAppBuilder>();
         var viewModelType = navBuilder?.GetViewModelTypeForPage(page);
         if (viewModelType == null)
+            return;
+
+        // BindingContext inherits down the visual tree, so it may be the Shell
+        // instance rather than null — check if it's already the correct ViewModel
+        if (page.BindingContext != null && viewModelType.IsInstanceOfType(page.BindingContext))
             return;
 
         page.BindingContext = services.GetService(viewModelType);
