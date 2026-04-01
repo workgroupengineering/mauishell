@@ -1,6 +1,8 @@
+using Shiny;
+
 namespace Sample;
 
-public partial class TabbedShell : Shell
+public partial class TabbedShell : ShinyShell
 {
     public TabbedShell()
     {
